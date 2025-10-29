@@ -1,0 +1,6 @@
+{
+  "citizen": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJyb2xlIjoiY2l0aXplbiIsImp0aSI6Imt0V2tMRVp4anN0VHR0N3BWYkRnVGciLCJleHAiOjE3NjE0MTIyMTMsImlhdCI6MTc2MTMyNTgxM30.zzpaSUpXrBBYNQoTW10FWfqBq1QQRFbj89SSjcrGWSs",
+  "admin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJqdGkiOiJITGlZSUc1YVliRzU4cWVaUF92ZTZRIiwiZXhwIjoxNzYxNDEyMjA5LCJpYXQiOjE3NjEzMjU4MDl9.loUrLG89wxXrV-XcQTldCS-SbCo02CEsnnf3JZdyM_k",
+  "saved_at": 1761325813,
+  "base": "http://localhost:8000"
+}

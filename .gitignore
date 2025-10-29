@@ -1,0 +1,178 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Media files (local storage)
+media/
+uploads/
+civiclens-backend/media/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Next.js
+.next/
+out/
+.vercel
+.turbo
+
+# React/Vite
+dist/
+dist-ssr/
+*.local
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# MinIO data
+minio-data/
+
+# Redis data
+redis-data/
+
+# PostgreSQL data
+postgres-data/
+
+# Alembic
+alembic/versions/*.pyc
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# AI/ML models
+*.pkl
+*.joblib
+*.h5
+*.model
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Sentry
+.sentryclirc
+
+# Local scripts
+commands
+*.local.sh
+*.local.bat
+
+# Windows specific
+*.exe
+*.dll
+*.pdb
+
+# macOS specific
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Linux specific
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Project specific
+.kiro/
+for setting up/
+debug_*.py
+test_*.py
+fix_*.py
+cleanup_*.py
+verify_*.py
+unlock_*.py
+reset_*.py
+mark_*.py
+run_*.py
+check_*.py
+create_admin_direct.py
+create_super_admin.py
+connectivity_test.ps1
+seed_rmc.bat
+init_db.py
+install_security.py
+
+# Keep example files
+!.env.example
+!.env.local.example
