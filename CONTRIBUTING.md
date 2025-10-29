@@ -11,7 +11,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally
    ```bash
-   git clone https://github.com/yourusername/civiclens.git
+   https://github.com/tejasbhor/Civiclens_.git
    cd civiclens
    ```
 3. **Create a branch** for your changes

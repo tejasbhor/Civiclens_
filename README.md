@@ -1,6 +1,6 @@
 # 🏛️ CivicLens - Smart Civic Issue Management System
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/civiclens)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/tejasbhor/Civiclens_.git)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com/)
