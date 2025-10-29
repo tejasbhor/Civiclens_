@@ -64,8 +64,7 @@ CivicLens is now fully prepared for GitHub v1.0.0 release!
 
 ### Option 1: Docker (Recommended)
 ```bash
-git clone https://github.com/yourusername/civiclens.git
-cd civiclens
+https://github.com/tejasbhor/Civiclens_.git
 cp .env.example .env
 docker-compose up -d
 ```

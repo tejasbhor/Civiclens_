@@ -79,8 +79,7 @@ CivicLens/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/civiclens.git
-cd civiclens
+https://github.com/tejasbhor/Civiclens_.git
 ```
 
 ### 2. Backend Setup

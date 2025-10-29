@@ -45,8 +45,7 @@ This guide covers deploying CivicLens in production environments.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/civiclens.git
-cd civiclens
+https://github.com/tejasbhor/Civiclens_.git
 ```
 
 ### 2. Configure Environment

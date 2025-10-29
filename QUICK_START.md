@@ -14,8 +14,7 @@ Get CivicLens up and running in 10 minutes!
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/civiclens.git
-cd civiclens
+https://github.com/tejasbhor/Civiclens_.git
 
 # Copy environment file
 cp .env.example .env
