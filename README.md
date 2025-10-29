@@ -269,7 +269,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/civiclens/issues)
+- **Issues**: [GitHub Issues](https://github.com/tejasbhor/Civiclens_/issues)
 - **Email**: support@civiclens.example.com
 
 ## 🗺️ Roadmap

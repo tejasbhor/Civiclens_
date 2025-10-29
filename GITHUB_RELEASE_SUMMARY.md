@@ -219,7 +219,7 @@ git commit -m "Initial release v1.0.0
 - Production-ready security features"
 
 # Add remote
-git remote add origin https://github.com/yourusername/civiclens.git
+git remote add origin https://github.com/tejasbhor/Civiclens_.git
 
 # Push
 git push -u origin main
@@ -299,7 +299,7 @@ An open-source, AI-powered civic issue management system for smart cities.
 
 🚀 Get started in 10 minutes with Docker!
 
-GitHub: https://github.com/yourusername/civiclens
+GitHub: https://github.com/tejasbhor/Civiclens_
 License: MIT
 
 #opensource #smartcity #civictech #fastapi #nextjs #react

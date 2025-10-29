@@ -277,8 +277,8 @@ docker-compose down --rmi all
 ## 📞 Need Help?
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/civiclens/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/civiclens/discussions)
+- **Issues**: [GitHub Issues](https://github.com/tejasbhor/Civiclens_/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tejasbhor/Civiclens_/discussions)
 
 ---
 

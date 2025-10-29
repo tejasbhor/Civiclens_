@@ -214,8 +214,8 @@ Contributors will be recognized in:
 
 ## 📞 Questions?
 
-- Open a [GitHub Discussion](https://github.com/yourusername/civiclens/discussions)
-- Check existing [Issues](https://github.com/yourusername/civiclens/issues)
+- Open a [GitHub Discussion](https://github.com/tejasbhor/Civiclens_/discussions)
+- Check existing [Issues](https://github.com/tejasbhor/Civiclens_/issues)
 - Review [Documentation](docs/)
 
 ## 🎉 Thank You!

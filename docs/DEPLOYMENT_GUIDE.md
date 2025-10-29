@@ -514,7 +514,7 @@ docker system prune -a
 ## Support
 
 For deployment issues:
-- Check [GitHub Issues](https://github.com/yourusername/civiclens/issues)
+- Check [GitHub Issues](https://github.com/tejasbhor/Civiclens_/issues)
 - Review logs for error messages
 - Contact support: support@civiclens.example.com
 
