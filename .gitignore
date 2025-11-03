@@ -166,13 +166,21 @@ reset_*.py
 mark_*.py
 run_*.py
 check_*.py
+requeue_*.py
 create_admin_direct.py
 create_super_admin.py
 connectivity_test.ps1
 seed_rmc.bat
 init_db.py
 install_security.py
+cleanup_for_github.bat
+
+# Production logs
+setup_production.log
 
 # Keep example files
 !.env.example
 !.env.local.example
+
+# Keep production setup script
+!setup_production.py

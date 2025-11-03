@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Query, status, Request, Form
+from fastapi import APIRouter, Depends, Query, status, Request, Form, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from app.core.database import get_db, get_redis
 from app.core.dependencies import get_current_user_optional, get_current_user
@@ -25,6 +26,11 @@ from app.models.report_status_history import ReportStatusHistory
 from datetime import datetime
 from app.models.department import Department
 import logging
+from app.core.background_tasks import (
+    update_user_reputation_bg,
+    queue_report_for_processing_bg,
+    log_audit_event_bg
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +56,14 @@ def serialize_report_with_details(report) -> dict:
         "address": report.address,
         "classification_notes": getattr(report, "classification_notes", None),
         "classified_by_user_id": getattr(report, "classified_by_user_id", None),
+        # AI Processing fields
+        "ai_category": getattr(report, "ai_category", None),
+        "ai_confidence": getattr(report, "ai_confidence", None),
+        "ai_processed_at": report.ai_processed_at.isoformat() if getattr(report, "ai_processed_at", None) else None,
+        "ai_model_version": getattr(report, "ai_model_version", None),
+        "needs_review": bool(getattr(report, "needs_review", False)),
+        "is_duplicate": bool(getattr(report, "is_duplicate", False)),
+        "duplicate_of_report_id": getattr(report, "duplicate_of_report_id", None),
         # Nested relationships
         "user": None,
         "department": None,
@@ -155,6 +169,7 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 async def create_report(
     report_data: ReportCreate,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
@@ -213,55 +228,93 @@ async def create_report(
         
         logger.info(f"Creating report with validated data: {report_dict}")
         
-        # Create report using CRUD layer
-        report_create_internal = ReportCreateInternal(**report_dict)
-        report = await report_crud.create(db, report_create_internal)
-        
-        logger.info(f"Report created successfully with ID: {report.id}")
-
-        # Generate report_number (CL-{year}-{CITY_CODE}-{sequence})
+        # Retry loop to handle race conditions with report number generation
+        max_retries = 5
+        retry_count = 0
+        report = None
         report_number = None
-        try:
-            city = settings.CITY_CODE or "RNC"
-            year = datetime.utcnow().year
-            redis = await get_redis()
-            seq = await redis.incr(f"seq:report_number:{city}:{year}")
-            report_number = f"CL-{year}-{city}-{seq:05d}"
-            
-            # Update report with report number
-            await report_crud.update(db, report.id, ReportUpdate(report_number=report_number))
-            report.report_number = report_number
-            await db.flush()
-            
-            logger.info(f"Report number generated: {report_number}")
-        except Exception as e:
-            logger.warning(f"Failed to generate report number: {str(e)}")
-            # Non-blocking if Redis unavailable
+        
+        while retry_count < max_retries:
+            try:
+                # Generate report_number atomically using Redis
+                city = settings.CITY_CODE or "RNC"
+                year = datetime.utcnow().year
+                redis = await get_redis()
+                
+                # Increment sequence atomically in Redis
+                seq = await redis.incr(f"seq:report_number:{city}:{year}")
+                report_number = f"CL-{year}-{city}-{seq:05d}"
+                
+                # Add report_number to the data before creating
+                report_dict['report_number'] = report_number
+                
+                logger.info(f"Generated report number: {report_number} (attempt {retry_count + 1})")
+                
+                # Create report using CRUD layer with report_number already set
+                report_create_internal = ReportCreateInternal(**report_dict)
+                report = await report_crud.create(db, report_create_internal, commit=False)
+                
+                # Flush to get the ID but don't commit yet
+                await db.flush()
+                logger.info(f"Report created successfully with ID: {report.id}, report_number: {report_number}")
+                
+                # Success - break out of retry loop
+                break
+                
+            except IntegrityError as e:
+                # Check if it's a duplicate report_number error
+                if "ix_reports_report_number" in str(e) or "report_number" in str(e):
+                    retry_count += 1
+                    await db.rollback()  # Rollback the failed transaction
+                    
+                    if retry_count >= max_retries:
+                        logger.error(f"Failed to create report after {max_retries} retries due to duplicate report_number")
+                        raise ValidationException(
+                            "Unable to generate unique report number. Please try again."
+                        )
+                    else:
+                        # Exponential backoff: 0.1s, 0.2s, 0.4s, 0.8s, 1.6s
+                        import asyncio
+                        await asyncio.sleep(0.1 * (2 ** retry_count))
+                        logger.warning(f"Duplicate report_number {report_number}, retrying... (attempt {retry_count + 1}/{max_retries})")
+                        continue
+                else:
+                    # Different IntegrityError - re-raise
+                    raise
+            except Exception as e:
+                # For Redis or other errors, log and continue without report_number
+                logger.warning(f"Error generating report number: {str(e)}")
+                report_dict['report_number'] = None
+                
+                # Try to create without report_number
+                report_create_internal = ReportCreateInternal(**report_dict)
+                report = await report_crud.create(db, report_create_internal, commit=False)
+                await db.flush()
+                logger.info(f"Report created without report_number, ID: {report.id}")
+                break
+        
+        if report is None:
+            raise ValidationException("Failed to create report. Please try again.")
 
-        # Queue for processing: admin review (always) and optional classification
-        try:
-            redis = await get_redis()
-            await redis.lpush("queue:admin_review", str(report.id))
-            await redis.lpush("queue:classification", str(report.id))
-            logger.info(f"Report {report.id} queued for processing")
-        except Exception as e:
-            logger.warning(f"Failed to queue report for processing: {str(e)}")
-            # Non-blocking; if Redis down, creation still succeeds
+        # Queue for processing in background (non-blocking)
+        background_tasks.add_task(
+            queue_report_for_processing_bg,
+            report.id
+        )
 
-        # Increment user's report count and reputation
-        try:
-            await user_crud.update_reputation(db, current_user.id, 5)  # 5 points for reporting
-            logger.info(f"Updated reputation for user {current_user.id}")
-        except Exception as e:
-            logger.warning(f"Failed to update user reputation: {str(e)}")
+        # Update user reputation in background (non-blocking)
+        background_tasks.add_task(
+            update_user_reputation_bg,
+            current_user.id,
+            5  # 5 points for reporting
+        )
 
-        # Comprehensive audit logging
-        await audit_logger.log(
-            db=db,
+        # Audit logging in background (non-blocking)
+        background_tasks.add_task(
+            log_audit_event_bg,
             action=AuditAction.REPORT_CREATED,
             status=AuditStatus.SUCCESS,
-            user=current_user,
-            request=request,
+            user_id=current_user.id,
             description=f"Created report: {report.title}",
             metadata={
                 "report_id": report.id,
@@ -275,7 +328,9 @@ async def create_report(
                 "validation_passed": True
             },
             resource_type="report",
-            resource_id=str(report.id)
+            resource_id=str(report.id),
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent")
         )
 
         # Commit all changes
@@ -307,6 +362,7 @@ async def create_report(
         
     except ValidationException as e:
         logger.error(f"Validation error in report creation: {str(e)}")
+        await db.rollback()
         await audit_logger.log(
             db=db,
             action=AuditAction.REPORT_CREATED,
@@ -327,6 +383,7 @@ async def create_report(
         
     except Exception as e:
         logger.error(f"Unexpected error in report creation: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
         await db.rollback()
         
         await audit_logger.log(
@@ -361,11 +418,12 @@ async def get_reports(
     category: Optional[str] = None,
     severity: Optional[ReportSeverity] = None,
     department_id: Optional[int] = None,
+    needs_review: Optional[bool] = Query(None, description="Filter reports needing manual review"),
     search: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all reports with filters and pagination"""
+    """Get all reports with filters and pagination (includes AI review queue filter)"""
     skip = (page - 1) * per_page
     
     # Build filters
@@ -378,6 +436,8 @@ async def get_reports(
         filters['severity'] = severity
     if department_id:
         filters['department_id'] = department_id
+    if needs_review is not None:
+        filters['needs_review'] = needs_review
     
     # Get reports with task.officer relationship
     if search:

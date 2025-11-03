@@ -81,29 +81,29 @@ class RateLimiter:
         return True
     
     async def check_otp_rate_limit(self, phone: str) -> bool:
-        """Check OTP request rate limit (3 per hour)"""
+        """Check OTP request rate limit"""
         return await self.check_rate_limit(
             key=f"otp:{phone}",
-            max_requests=3,
-            window_seconds=3600,  # 1 hour
+            max_requests=settings.RATE_LIMIT_OTP_MAX_REQUESTS,
+            window_seconds=settings.RATE_LIMIT_OTP_WINDOW_SECONDS,
             identifier="OTP requests"
         )
     
     async def check_login_rate_limit(self, phone: str) -> bool:
-        """Check login rate limit (5 per 15 minutes)"""
+        """Check login rate limit"""
         return await self.check_rate_limit(
             key=f"login:{phone}",
-            max_requests=5,
-            window_seconds=900,  # 15 minutes
+            max_requests=settings.RATE_LIMIT_LOGIN_MAX_REQUESTS,
+            window_seconds=settings.RATE_LIMIT_LOGIN_WINDOW_SECONDS,
             identifier="login attempts"
         )
     
     async def check_password_reset_rate_limit(self, phone: str) -> bool:
-        """Check password reset rate limit (3 per hour)"""
+        """Check password reset rate limit"""
         return await self.check_rate_limit(
             key=f"password_reset:{phone}",
-            max_requests=3,
-            window_seconds=3600,  # 1 hour
+            max_requests=settings.RATE_LIMIT_PASSWORD_RESET_MAX_REQUESTS,
+            window_seconds=settings.RATE_LIMIT_PASSWORD_RESET_WINDOW_SECONDS,
             identifier="password reset requests"
         )
     

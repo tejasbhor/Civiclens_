@@ -120,8 +120,8 @@ async def seed_officers(db: AsyncSession):
     print("=" * 60)
 
 
-async def seed_all():
-    """Seed all data"""
+async def seed_ranchi_data():
+    """Seed all Ranchi Municipal Corporation data"""
     print("\n" + "=" * 60)
     print("🏛️  RANCHI MUNICIPAL CORPORATION - DATA SEEDING")
     print("=" * 60)

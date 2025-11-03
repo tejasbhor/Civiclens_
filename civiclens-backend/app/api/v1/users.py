@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 from app.core.database import get_db, get_redis
@@ -14,8 +14,10 @@ from app.models.user import User, UserRole
 from app.models.department import Department
 from app.crud.user import user_crud
 from app.crud.area_assignment import area_assignment_crud
-from app.crud.role_history import role_history_crud
-from app.models.report import Report, ReportStatus
+from app.core.audit_logger import audit_logger
+from app.models.audit_log import AuditAction, AuditStatus
+import logging
+from app.core.background_tasks import send_email_notification_bg
 from app.models.task import Task, TaskStatus
 from sqlalchemy import select, func, and_
 from pydantic import BaseModel, Field
@@ -507,53 +509,55 @@ async def get_my_verification_status(
 
 @router.post("/me/verification/email/send")
 async def send_email_verification(
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Issue a time-bound email verification token and track last sent time. In production, send via email service."""
     if not current_user.email:
         raise ValidationException("Email not set")
-    # Rate limit: 3 per hour per user
+    # Rate limit: configurable per user
     await rate_limiter.check_rate_limit(
         key=f"verify_email:{current_user.id}",
-        max_requests=3,
-        window_seconds=3600,
+        max_requests=settings.RATE_LIMIT_EMAIL_VERIFY_MAX_REQUESTS,
+        window_seconds=settings.RATE_LIMIT_EMAIL_VERIFY_WINDOW_SECONDS,
         identifier="email verification requests"
     )
     redis = await get_redis()
     token = f"ev-{current_user.id}-{int(datetime.utcnow().timestamp())}"
     await redis.setex(f"verify:email:token:{current_user.id}", 15 * 60, token)
     await redis.set(f"verify:email:sent:{current_user.id}", datetime.utcnow().isoformat())
-    # Attempt to send email via SMTP if configured
-    resp = {"message": "Verification email initiated"}
-    try:
-        smtp_host = getattr(settings, "SMTP_HOST", None)
-        smtp_port = getattr(settings, "SMTP_PORT", None) or 587
-        smtp_user = getattr(settings, "SMTP_USERNAME", None)
-        smtp_pass = getattr(settings, "SMTP_PASSWORD", None)
-        smtp_from = getattr(settings, "SMTP_FROM", None) or (smtp_user or "no-reply@civiclens.local")
-        app_base_url = getattr(settings, "APP_BASE_URL", None) or "http://localhost:3000"
-        verify_link = f"{app_base_url}/auth/verify-email?token={token}"
-        if smtp_host and smtp_user and smtp_pass:
-            from email.message import EmailMessage
-            import smtplib
-            msg = EmailMessage()
-            msg["Subject"] = "Verify your email"
-            msg["From"] = smtp_from
-            msg["To"] = current_user.email
-            msg.set_content(f"Hello,\n\nPlease verify your email by clicking the link below:\n{verify_link}\n\nThis link expires in 15 minutes.\n\nRegards,\nCivicLens")
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_pass)
-                server.send_message(msg)
-            resp["message"] = "Verification email sent"
-        else:
-            logger.warning("SMTP not configured; returning debug token in DEBUG only")
-            resp["message"] = "Verification token generated"
-    except Exception as e:
-        logger.exception("Failed to send verification email: %s", e)
-        # Do not reveal internal errors; token still generated
-        resp["message"] = "Verification token generated"
+    # Send email in background (non-blocking)
+    smtp_host = getattr(settings, "SMTP_HOST", None)
+    smtp_port = getattr(settings, "SMTP_PORT", None) or 587
+    smtp_user = getattr(settings, "SMTP_USERNAME", None)
+    smtp_pass = getattr(settings, "SMTP_PASSWORD", None)
+    smtp_from = getattr(settings, "SMTP_FROM", None) or (smtp_user or "no-reply@civiclens.local")
+    app_base_url = getattr(settings, "APP_BASE_URL", None) or "http://localhost:3000"
+    verify_link = f"{app_base_url}/auth/verify-email?token={token}"
+    
+    if smtp_host and smtp_user and smtp_pass:
+        smtp_config = {
+            "host": smtp_host,
+            "port": smtp_port,
+            "username": smtp_user,
+            "password": smtp_pass,
+            "from_email": smtp_from
+        }
+        email_body = f"Hello,\n\nPlease verify your email by clicking the link below:\n{verify_link}\n\nThis link expires in 15 minutes.\n\nRegards,\nCivicLens"
+        
+        background_tasks.add_task(
+            send_email_notification_bg,
+            current_user.email,
+            "Verify your email",
+            email_body,
+            smtp_config
+        )
+        resp = {"message": "Verification email sent"}
+    else:
+        logger.warning("SMTP not configured; returning debug token in DEBUG only")
+        resp = {"message": "Verification token generated"}
+    
     if getattr(settings, "DEBUG", False):
         resp["debug_token"] = token
     return resp
@@ -583,11 +587,11 @@ async def send_phone_verification(
     """Issue a phone verification OTP via Redis key. In production, send via SMS gateway."""
     if not current_user.phone:
         raise ValidationException("Phone not set")
-    # Rate limit: 3 per hour per user
+    # Rate limit: configurable per user
     await rate_limiter.check_rate_limit(
         key=f"verify_phone:{current_user.id}",
-        max_requests=3,
-        window_seconds=3600,
+        max_requests=settings.RATE_LIMIT_PHONE_VERIFY_MAX_REQUESTS,
+        window_seconds=settings.RATE_LIMIT_PHONE_VERIFY_WINDOW_SECONDS,
         identifier="phone verification requests"
     )
     from app.core.security import generate_otp

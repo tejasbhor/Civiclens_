@@ -1,27 +1,59 @@
 # Contributing to CivicLens
 
-Thank you for your interest in contributing to CivicLens! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to CivicLens! We welcome contributions from the community.
 
-## 🤝 Code of Conduct
+## 📋 Table of Contents
 
-By participating in this project, you agree to maintain a respectful and inclusive environment for all contributors.
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Setup](#development-setup)
+- [How to Contribute](#how-to-contribute)
+- [Coding Standards](#coding-standards)
+- [Commit Guidelines](#commit-guidelines)
+- [Pull Request Process](#pull-request-process)
+- [Testing](#testing)
+- [Documentation](#documentation)
+
+## 📜 Code of Conduct
+
+This project adheres to a Code of Conduct that all contributors are expected to follow. Please be respectful and constructive in all interactions.
+
+### Our Standards
+
+- Be respectful and inclusive
+- Welcome newcomers and help them get started
+- Focus on what is best for the community
+- Show empathy towards other community members
+- Accept constructive criticism gracefully
 
 ## 🚀 Getting Started
 
 1. **Fork the repository** on GitHub
-2. **Clone your fork** locally
+2. **Clone your fork** locally:
    ```bash
-   https://github.com/tejasbhor/Civiclens_.git
-   cd civiclens
+   git clone https://github.com/tejasbhor/Civiclens_.git
+   cd Civiclens_
    ```
-3. **Create a branch** for your changes
+3. **Add upstream remote**:
+   ```bash
+   git remote add upstream https://github.com/tejasbhor/Civiclens_.git
+   ```
+4. **Create a branch** for your changes:
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-## 📝 Development Workflow
+## 💻 Development Setup
 
-### Backend Development
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 14+ with PostGIS
+- Redis 6+ (optional but recommended)
+- Git
+
+### Backend Setup
 
 ```bash
 cd civiclens-backend
@@ -33,14 +65,21 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run tests
-pytest
+# Copy environment file
+cp .env.example .env
+
+# Edit .env with your configuration
+# Run migrations
+alembic upgrade head
+
+# Run setup script
+python setup_production.py
 
 # Start development server
 uvicorn app.main:app --reload
 ```
 
-### Frontend Development (Admin Dashboard)
+### Frontend Setup (Admin Dashboard)
 
 ```bash
 cd civiclens-admin
@@ -48,17 +87,14 @@ cd civiclens-admin
 # Install dependencies
 npm install
 
-# Run development server
+# Copy environment file
+cp .env.example .env.local
+
+# Start development server
 npm run dev
-
-# Run linter
-npm run lint
-
-# Run tests
-npm test
 ```
 
-### Frontend Development (Citizen Portal)
+### Frontend Setup (Citizen Portal)
 
 ```bash
 cd civiclens-client
@@ -66,37 +102,123 @@ cd civiclens-client
 # Install dependencies
 npm install
 
-# Run development server
+# Copy environment file
+cp .env.example .env
+
+# Start development server
 npm run dev
-
-# Run linter
-npm run lint
-
-# Run tests
-npm test
 ```
 
-## 🎯 Contribution Guidelines
+## 🤝 How to Contribute
 
-### Code Style
+### Reporting Bugs
 
-**Python (Backend):**
-- Follow PEP 8 style guide
-- Use type hints for function parameters and return values
-- Maximum line length: 100 characters
-- Use meaningful variable and function names
-- Add docstrings for classes and functions
+1. **Check existing issues** to avoid duplicates
+2. **Use the bug report template**
+3. **Include**:
+   - Clear description of the bug
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Screenshots if applicable
+   - Environment details (OS, Python version, etc.)
 
-**TypeScript/JavaScript (Frontend):**
-- Use TypeScript for type safety
-- Follow ESLint configuration
-- Use functional components with hooks
-- Use meaningful component and variable names
-- Add JSDoc comments for complex functions
+### Suggesting Features
 
-### Commit Messages
+1. **Check existing feature requests**
+2. **Use the feature request template**
+3. **Include**:
+   - Clear description of the feature
+   - Use cases and benefits
+   - Possible implementation approach
+   - Mockups or examples if applicable
 
-Follow the conventional commits specification:
+### Code Contributions
+
+1. **Pick an issue** or create one
+2. **Comment** on the issue to let others know you're working on it
+3. **Follow the development setup** above
+4. **Make your changes** following our coding standards
+5. **Test your changes** thoroughly
+6. **Submit a pull request**
+
+## 📝 Coding Standards
+
+### Python (Backend)
+
+- Follow **PEP 8** style guide
+- Use **type hints** for function parameters and return values
+- Write **docstrings** for all functions, classes, and modules
+- Use **async/await** for I/O operations
+- Keep functions **small and focused**
+- Use **meaningful variable names**
+
+Example:
+```python
+async def create_report(
+    db: AsyncSession,
+    report_data: ReportCreate,
+    user_id: int
+) -> Report:
+    """
+    Create a new civic issue report.
+    
+    Args:
+        db: Database session
+        report_data: Report creation data
+        user_id: ID of the user creating the report
+        
+    Returns:
+        Created report object
+        
+    Raises:
+        ValidationException: If data is invalid
+    """
+    # Implementation
+    pass
+```
+
+### TypeScript/JavaScript (Frontend)
+
+- Follow **Airbnb style guide**
+- Use **TypeScript** for type safety
+- Use **functional components** with hooks
+- Keep components **small and reusable**
+- Use **meaningful component names**
+- Write **JSDoc comments** for complex functions
+
+Example:
+```typescript
+interface ReportCardProps {
+  report: Report;
+  onStatusChange: (id: number, status: ReportStatus) => void;
+}
+
+/**
+ * Display card for a single report with status management
+ */
+export const ReportCard: React.FC<ReportCardProps> = ({ 
+  report, 
+  onStatusChange 
+}) => {
+  // Implementation
+};
+```
+
+### General Guidelines
+
+- **DRY** (Don't Repeat Yourself)
+- **KISS** (Keep It Simple, Stupid)
+- **SOLID** principles
+- **Separation of concerns**
+- **Error handling** - Always handle errors gracefully
+- **Logging** - Use structured logging (no print statements)
+- **Security** - Never commit secrets or credentials
+
+## 📝 Commit Guidelines
+
+We follow **Conventional Commits** specification:
+
+### Format
 
 ```
 <type>(<scope>): <subject>
@@ -106,122 +228,228 @@ Follow the conventional commits specification:
 <footer>
 ```
 
-**Types:**
+### Types
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
 - `style`: Code style changes (formatting, etc.)
 - `refactor`: Code refactoring
+- `perf`: Performance improvements
 - `test`: Adding or updating tests
 - `chore`: Maintenance tasks
+- `ci`: CI/CD changes
 
-**Examples:**
-```
-feat(api): add endpoint for bulk report updates
+### Examples
 
-fix(dashboard): resolve issue with date picker not updating
+```bash
+feat(api): add duplicate detection endpoint
+
+Implement endpoint for detecting duplicate reports using
+Sentence-BERT embeddings and PostGIS spatial queries.
+
+Closes #123
+
+fix(auth): resolve session hijacking vulnerability
+
+Add session fingerprinting to prevent session hijacking attacks.
+Includes user agent and IP address validation.
+
+Fixes #456
 
 docs(readme): update installation instructions
 
-test(auth): add tests for 2FA functionality
+Add Redis installation steps and troubleshooting section.
 ```
 
-### Pull Request Process
+### Rules
 
-1. **Update documentation** if you're changing functionality
-2. **Add tests** for new features
-3. **Ensure all tests pass** before submitting
-4. **Update CHANGELOG.md** with your changes
-5. **Create a pull request** with a clear title and description
+- Use **present tense** ("add feature" not "added feature")
+- Use **imperative mood** ("move cursor to..." not "moves cursor to...")
+- Keep **subject line under 72 characters**
+- Reference **issue numbers** in footer
+- Explain **what and why**, not how
 
-**PR Title Format:**
+## 🔄 Pull Request Process
+
+### Before Submitting
+
+1. **Update your branch** with latest upstream:
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
+
+2. **Run tests** and ensure they pass:
+   ```bash
+   # Backend
+   cd civiclens-backend
+   pytest
+   
+   # Frontend
+   cd civiclens-admin
+   npm test
+   ```
+
+3. **Check code quality**:
+   ```bash
+   # Python
+   flake8 app/
+   mypy app/
+   
+   # TypeScript
+   npm run lint
+   npm run type-check
+   ```
+
+4. **Update documentation** if needed
+
+### Submitting
+
+1. **Push your branch** to your fork:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+2. **Create a pull request** on GitHub
+
+3. **Fill out the PR template** completely:
+   - Description of changes
+   - Related issues
+   - Testing performed
+   - Screenshots (if UI changes)
+   - Breaking changes (if any)
+
+4. **Wait for review** - Be patient and responsive to feedback
+
+### PR Requirements
+
+- ✅ All tests passing
+- ✅ Code follows style guidelines
+- ✅ Documentation updated
+- ✅ No merge conflicts
+- ✅ Commit messages follow guidelines
+- ✅ PR description is clear and complete
+
+### Review Process
+
+1. **Automated checks** run first (CI/CD)
+2. **Code review** by maintainers
+3. **Feedback** and requested changes
+4. **Approval** after all checks pass
+5. **Merge** by maintainers
+
+## 🧪 Testing
+
+### Backend Testing
+
+```bash
+cd civiclens-backend
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_reports.py
+
+# Run specific test
+pytest tests/test_reports.py::test_create_report
 ```
-[Type] Brief description of changes
+
+### Frontend Testing
+
+```bash
+cd civiclens-admin
+
+# Run all tests
+npm test
+
+# Run with coverage
+npm test -- --coverage
+
+# Run in watch mode
+npm test -- --watch
 ```
 
-**PR Description Should Include:**
-- What changes were made
-- Why the changes were necessary
-- How to test the changes
-- Screenshots (if UI changes)
-- Related issues (if any)
+### Test Guidelines
 
-### Testing Requirements
+- Write tests for **all new features**
+- Maintain **test coverage above 80%**
+- Use **descriptive test names**
+- Test **edge cases** and error conditions
+- Mock **external dependencies**
+- Keep tests **fast and isolated**
 
-- **Backend**: All new features must have unit tests
-- **Frontend**: Add tests for complex components and logic
-- **E2E Tests**: Update if changing user flows
-- **Test Coverage**: Aim for >80% coverage on new code
+## 📚 Documentation
 
-## 🐛 Reporting Bugs
+### What to Document
 
-When reporting bugs, please include:
+- **New features** - Usage examples and API reference
+- **Breaking changes** - Migration guide
+- **Configuration** - New environment variables
+- **Architecture** - Design decisions
+- **Troubleshooting** - Common issues and solutions
 
-1. **Clear title** describing the issue
-2. **Steps to reproduce** the bug
-3. **Expected behavior** vs actual behavior
-4. **Screenshots** or error messages
-5. **Environment details** (OS, browser, versions)
-6. **Possible solution** (if you have one)
+### Documentation Style
 
-Use the bug report template when creating issues.
+- Use **clear and concise** language
+- Include **code examples**
+- Add **screenshots** for UI features
+- Keep **README.md** up to date
+- Update **API documentation**
+- Add **inline comments** for complex logic
 
-## 💡 Suggesting Features
+### Where to Document
 
-When suggesting features, please include:
+- **README.md** - Overview and quick start
+- **docs/** - Detailed documentation
+- **Inline comments** - Code explanations
+- **Docstrings** - Function/class documentation
+- **CHANGELOG.md** - Version history
+- **API docs** - OpenAPI/Swagger
 
-1. **Clear description** of the feature
-2. **Use case** - why is this needed?
-3. **Proposed solution** - how should it work?
-4. **Alternatives considered**
-5. **Additional context** (mockups, examples)
+## 🎯 Areas for Contribution
 
-Use the feature request template when creating issues.
+### High Priority
 
-## 📋 Development Setup Checklist
+- 🐛 Bug fixes
+- 📝 Documentation improvements
+- 🧪 Test coverage
+- ♿ Accessibility improvements
+- 🌐 Internationalization (i18n)
 
-- [ ] PostgreSQL with PostGIS installed and running
-- [ ] Redis installed and running
-- [ ] Python 3.11+ installed
-- [ ] Node.js 18+ installed
-- [ ] Environment variables configured
-- [ ] Database migrations run
-- [ ] Super admin user created
-- [ ] All services running without errors
+### Feature Ideas
 
-## 🔍 Code Review Process
+- 📱 Mobile apps (iOS/Android)
+- 💬 WhatsApp integration
+- 🤖 Advanced AI models
+- 🏙️ Multi-city support
+- 📊 Advanced analytics
+- 🎮 Gamification features
 
-1. **Automated checks** must pass (linting, tests, build)
-2. **At least one maintainer** must review and approve
-3. **Address feedback** from reviewers
-4. **Squash commits** before merging (if requested)
-5. **Delete branch** after merge
+### Good First Issues
 
-## 📚 Resources
+Look for issues labeled `good-first-issue` - these are beginner-friendly tasks perfect for first-time contributors.
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
+## 💬 Communication
 
-## 🏆 Recognition
+- **GitHub Issues** - Bug reports and feature requests
+- **Pull Requests** - Code contributions and discussions
+- **Discussions** - General questions and ideas
 
-Contributors will be recognized in:
-- README.md contributors section
-- CHANGELOG.md for their contributions
-- GitHub contributors page
+## 📄 License
 
-## 📞 Questions?
+By contributing to CivicLens, you agree that your contributions will be licensed under the MIT License.
 
-- Open a [GitHub Discussion](https://github.com/tejasbhor/Civiclens_/discussions)
-- Check existing [Issues](https://github.com/tejasbhor/Civiclens_/issues)
-- Review [Documentation](docs/)
-
-## 🎉 Thank You!
+## 🙏 Thank You!
 
 Your contributions make CivicLens better for everyone. We appreciate your time and effort!
 
 ---
 
-**Happy Contributing! 🚀**
+**Questions?** Feel free to ask in the issues or discussions section.
+
+**Need help?** Check out our [documentation](docs/) or reach out to the maintainers.

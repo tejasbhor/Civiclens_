@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 from app.core.database import get_db, get_redis
@@ -34,6 +34,10 @@ from app.schemas.auth import (
 from app.schemas.user import OfficerCreate, UserProfileUpdate
 from app.crud.user import user_crud
 from app.config import settings
+from app.core.background_tasks import (
+    send_otp_sms_bg,
+    update_login_stats_bg
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -41,6 +45,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/request-otp", status_code=status.HTTP_200_OK)
 async def request_otp(
     request: OTPRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
     """Request OTP for phone number with rate limiting"""
@@ -60,8 +65,13 @@ async def request_otp(
         otp
     )
 
-    # TODO: Send OTP via SMS gateway in production
-    # For development, return OTP
+    # Send OTP via SMS in background (non-blocking)
+    background_tasks.add_task(
+        send_otp_sms_bg,
+        request.phone,
+        otp
+    )
+
     return {
         "message": "OTP sent successfully",
         "otp": otp if settings.DEBUG else None,
@@ -73,6 +83,7 @@ async def request_otp(
 async def verify_otp(
     request: OTPVerify,
     http_request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
     """Verify OTP and return access + refresh tokens with session tracking"""
@@ -90,13 +101,16 @@ async def verify_otp(
     if not user:
         user = await user_crud.create_minimal_user(db, request.phone)
 
-    # Update login stats
-    await user_crud.update_login_stats(db, user.id)
-
     # Delete OTP from Redis
     await redis_client.delete(redis_key)
     
-    # Log successful OTP login
+    # Update login stats in background (non-blocking)
+    background_tasks.add_task(
+        update_login_stats_bg,
+        user.id
+    )
+    
+    # Log successful OTP login (keep synchronous for security audit trail)
     await audit_logger.log_login_success(db, user, http_request, "otp")
 
     # Generate JTIs for session tracking

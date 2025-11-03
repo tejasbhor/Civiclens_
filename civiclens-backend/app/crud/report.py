@@ -199,9 +199,15 @@ class CRUDReport(CRUDBase[Report, ReportCreate, ReportUpdate]):
         status_result = await db.execute(status_query)
         by_status = {status: count for status, count in status_result.all()}
         
-        # Count by category
+        # Count by category - ONLY active reports (exclude closed, resolved, rejected)
+        # Closed/resolved reports should only contribute to their own status counts
         category_query = (
             select(Report.category, func.count(Report.id))
+            .where(Report.status.not_in([
+                ReportStatus.CLOSED,
+                ReportStatus.RESOLVED,
+                ReportStatus.REJECTED
+            ]))
             .group_by(Report.category)
         )
         
@@ -213,9 +219,15 @@ class CRUDReport(CRUDBase[Report, ReportCreate, ReportUpdate]):
         category_result = await db.execute(category_query)
         by_category = {category: count for category, count in category_result.all()}
         
-        # Count by severity
+        # Count by severity - ONLY active reports (exclude closed, resolved, rejected)
+        # Closed/resolved reports should only contribute to their own status counts
         severity_query = (
             select(Report.severity, func.count(Report.id))
+            .where(Report.status.not_in([
+                ReportStatus.CLOSED,
+                ReportStatus.RESOLVED,
+                ReportStatus.REJECTED
+            ]))
             .group_by(Report.severity)
         )
         

@@ -137,7 +137,8 @@ const TaskDetail = () => {
 
   const getSeverityColor = (severity: string) => {
     const s = severity?.toLowerCase();
-    if (s === 'critical' || s === 'high') return 'text-red-500';
+    if (s === 'critical') return 'text-red-600';
+    if (s === 'high') return 'text-orange-500';
     if (s === 'medium') return 'text-amber-500';
     return 'text-blue-500';
   };

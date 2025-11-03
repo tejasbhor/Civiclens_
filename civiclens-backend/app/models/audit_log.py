@@ -79,6 +79,14 @@ class AuditAction(str, enum.Enum):
     ESCALATION_RESOLVED = "escalation_resolved"
     ESCALATION_DE_ESCALATED = "escalation_de_escalated"
     
+    # Task Actions
+    TASK_VIEWED = "task_viewed"
+    TASKS_VIEWED = "tasks_viewed"
+    TASK_UPDATED = "task_updated"
+    TASK_REASSIGNED = "task_reassigned"
+    TASKS_BULK_UPDATED = "tasks_bulk_updated"
+    TASK_STATS_VIEWED = "task_stats_viewed"
+    
     # System
     SYSTEM_CONFIG_CHANGE = "system_config_change"
 

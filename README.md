@@ -1,13 +1,16 @@
 # 🏛️ CivicLens - Smart Civic Issue Management System
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/tejasbhor/Civiclens_.git)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/tejasbhor/Civiclens_.git)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.6-black.svg)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://reactjs.org/)
+[![Production Ready](https://img.shields.io/badge/production-ready-brightgreen.svg)](https://github.com/tejasbhor/Civiclens_.git)
 
 **CivicLens** is a comprehensive, AI-powered civic issue management platform designed for smart cities. It enables citizens to report civic issues, government officers to manage and resolve them efficiently, and administrators to gain insights through analytics and predictions.
+
+> **🎉 Version 2.0 - Production Ready!** This release includes professional setup scripts, complete AI automation, enhanced security, and enterprise-grade features. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## 🌟 Key Features
 
@@ -27,11 +30,13 @@
 
 ### 🏛️ For Administrators
 - **Comprehensive Dashboard** - Real-time statistics and insights
-- **AI-powered Classification** - Automatic issue categorization
+- **AI-powered Classification** - Automatic issue categorization with 7-stage pipeline
+- **AI Insights** - Duplicate detection, confidence scoring, category analysis
 - **Analytics & Predictions** - Trend analysis and forecasting
-- **User Management** - Role-based access control
+- **User Management** - Role-based access control (7 tiers)
 - **Audit Logging** - Complete activity tracking
 - **Settings Management** - System-wide configuration
+- **Production Setup** - Professional deployment script with CLI options
 
 ## 🏗️ Architecture
 
@@ -103,8 +108,15 @@ cp .env.example .env
 # Run database migrations
 alembic upgrade head
 
-# Create super admin
-python create_super_admin.py
+# Run production setup (creates admin, seeds data, verifies setup)
+python setup_production.py
+
+# Or for non-interactive mode (CI/CD):
+# export ADMIN_PHONE="+919876543210"
+# export ADMIN_EMAIL="admin@example.com"
+# export ADMIN_NAME="Admin Name"
+# export ADMIN_PASSWORD="SecurePassword123!"
+# python setup_production.py --non-interactive
 
 # Start the server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -290,15 +302,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-- ✅ Core API - Complete
-- ✅ Admin Dashboard - Complete
+### v2.0 - Production Ready ✅
+
+- ✅ Core API - Complete & Production Ready
+- ✅ Admin Dashboard - Complete with AI Insights
 - ✅ Citizen Portal - Complete
-- ✅ Authentication & Security - Complete
-- ✅ AI Classification - Complete
-- ✅ Analytics - Complete
+- ✅ Authentication & Security - Enhanced with 2FA
+- ✅ AI Classification - 7-stage pipeline with 80-90% accuracy
+- ✅ AI Worker - Background processing with graceful degradation
+- ✅ Analytics - Complete with caching
 - ✅ Settings Management - Complete
-- 🚧 Mobile Apps - In Progress
-- 📋 Government Integration - Planned
+- ✅ Production Setup - Professional deployment script
+- ✅ Documentation - Comprehensive guides
+- 🚧 Mobile Apps - Planned for v2.1
+- 📋 Government Integration - Planned for v2.2
 
 ---
 

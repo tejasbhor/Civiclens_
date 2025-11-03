@@ -7,6 +7,8 @@ from .appeals import router as appeals_router
 from .escalations import router as escalations_router
 from .audit import router as audit_router
 from .media import router as media_router
+from .tasks import router as tasks_router
+from .ai_insights import router as ai_insights_router
 
 # Expose the routers for main.py to use
 auth = auth_router
@@ -18,5 +20,7 @@ appeals = appeals_router
 escalations = escalations_router
 audit = audit_router
 media = media_router
+tasks = tasks_router
+ai_insights = ai_insights_router
 
-__all__ = ["auth", "reports", "analytics", "users", "departments", "appeals", "escalations", "audit", "media"]
+__all__ = ["auth", "reports", "analytics", "users", "departments", "appeals", "escalations", "audit", "media", "tasks", "ai_insights"]

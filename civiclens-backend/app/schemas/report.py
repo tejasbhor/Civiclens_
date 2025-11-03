@@ -31,6 +31,7 @@ class ReportCreate(ReportBase):
 class ReportCreateInternal(ReportBase):
     """Internal schema for creating a report (includes user_id)"""
     user_id: int
+    report_number: Optional[str] = None
     category: Optional[str] = Field(None, description="Report category - must be one of the valid categories")
     sub_category: Optional[str] = None
     
@@ -57,6 +58,15 @@ class ReportUpdate(BaseModel):
     classification_notes: Optional[str] = None
     is_public: Optional[bool] = None
     needs_review: Optional[bool] = None
+    is_duplicate: Optional[bool] = None
+    duplicate_of_report_id: Optional[int] = None
+    status_updated_at: Optional[datetime] = None
+    
+    # AI Classification Fields
+    ai_category: Optional[str] = None
+    ai_confidence: Optional[float] = None
+    ai_processed_at: Optional[datetime] = None
+    ai_model_version: Optional[str] = None
 
 
 class ReportResponse(ReportBase):

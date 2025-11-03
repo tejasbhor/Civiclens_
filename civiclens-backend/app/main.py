@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from contextlib import asynccontextmanager
 from datetime import datetime
 import os
@@ -50,7 +52,7 @@ async def lifespan(app: FastAPI):
             settings.MINIO_ENDPOINT,
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
-            secure=settings.MINIO_SECURE
+            secure=settings.MINIO_USE_SSL
         )
         # Try to check if bucket exists
         bucket_exists = minio_client.bucket_exists(settings.MINIO_BUCKET)
@@ -133,6 +135,28 @@ app.mount("/media", StaticFiles(directory=media_directory), name="media")
 print(f"📁 Static media files mounted: /media -> {os.path.abspath(media_directory)}")
 
 # Exception handlers
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle Pydantic validation errors with detailed logging"""
+    print(f"\n❌ Validation Error on {request.method} {request.url.path}")
+    print(f"📋 Request body: {await request.body()}")
+    print(f"🔍 Validation errors:")
+    for error in exc.errors():
+        print(f"   - Field: {error['loc']}")
+        print(f"     Error: {error['msg']}")
+        print(f"     Type: {error['type']}")
+        if 'input' in error:
+            print(f"     Input: {error['input']}")
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": exc.errors(),
+            "body": exc.body
+        }
+    )
+
+
 @app.exception_handler(CivicLensException)
 async def civiclens_exception_handler(request: Request, exc: CivicLensException):
     """Handle custom CivicLens exceptions"""
@@ -167,6 +191,14 @@ app.include_router(appeals, prefix="/api/v1")
 app.include_router(escalations, prefix="/api/v1")
 app.include_router(audit, prefix="/api/v1")
 app.include_router(media, prefix="/api/v1")
+
+# Import and include tasks router
+from app.api.v1.tasks import router as tasks_router
+app.include_router(tasks_router, prefix="/api/v1")
+
+# Import and include AI insights router
+from app.api.v1.ai_insights import router as ai_insights_router
+app.include_router(ai_insights_router, prefix="/api/v1")
 
 
 @app.get("/")

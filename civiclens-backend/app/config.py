@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     DATABASE_MAX_OVERFLOW: int = 10
     DATABASE_ECHO: bool = False
     
-    # Redis
-    REDIS_URL: str
+    # Redis (optional for caching and rate limiting)
+    REDIS_URL: Optional[str] = "redis://localhost:6379/0"
     REDIS_PASSWORD: Optional[str] = None
     
     # Security
@@ -43,9 +43,16 @@ class Settings(BaseSettings):
     
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_OTP: str = "3/hour"  # 3 OTP requests per hour per phone
-    RATE_LIMIT_LOGIN: str = "5/15minutes"  # 5 login attempts per 15 min
-    RATE_LIMIT_PASSWORD_RESET: str = "3/hour"  # 3 password reset per hour
+    RATE_LIMIT_OTP_MAX_REQUESTS: int = 3  # Max OTP requests
+    RATE_LIMIT_OTP_WINDOW_SECONDS: int = 3600  # 1 hour window
+    RATE_LIMIT_LOGIN_MAX_REQUESTS: int = 5  # Max login attempts
+    RATE_LIMIT_LOGIN_WINDOW_SECONDS: int = 900  # 15 minutes window
+    RATE_LIMIT_PASSWORD_RESET_MAX_REQUESTS: int = 3  # Max password reset requests
+    RATE_LIMIT_PASSWORD_RESET_WINDOW_SECONDS: int = 3600  # 1 hour window
+    RATE_LIMIT_EMAIL_VERIFY_MAX_REQUESTS: int = 3  # Max email verification requests
+    RATE_LIMIT_EMAIL_VERIFY_WINDOW_SECONDS: int = 3600  # 1 hour window
+    RATE_LIMIT_PHONE_VERIFY_MAX_REQUESTS: int = 3  # Max phone verification requests
+    RATE_LIMIT_PHONE_VERIFY_WINDOW_SECONDS: int = 3600  # 1 hour window
     
     # Account Security
     MAX_LOGIN_ATTEMPTS: int = 5  # Max failed login attempts before lockout
@@ -62,7 +69,14 @@ class Settings(BaseSettings):
     SESSION_INACTIVITY_TIMEOUT_MINUTES: int = 60  # Auto-logout after inactivity
     
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: str = "http://localhost:3000"  # Comma-separated list
+    
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Parse CORS_ORIGINS string into list"""
+        if isinstance(self.CORS_ORIGINS, str):
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return self.CORS_ORIGINS
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
@@ -70,8 +84,36 @@ class Settings(BaseSettings):
     
     # File Upload
     MAX_UPLOAD_SIZE: int = 10485760  # 10MB
-    ALLOWED_IMAGE_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
-    ALLOWED_VIDEO_TYPES: List[str] = ["video/mp4", "video/webm"]
+    ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp"  # Comma-separated
+    ALLOWED_VIDEO_TYPES: str = "video/mp4,video/webm"  # Comma-separated
+    
+    @property
+    def allowed_image_types_list(self) -> List[str]:
+        """Parse ALLOWED_IMAGE_TYPES string into list"""
+        if isinstance(self.ALLOWED_IMAGE_TYPES, str):
+            return [t.strip() for t in self.ALLOWED_IMAGE_TYPES.split(",") if t.strip()]
+        return self.ALLOWED_IMAGE_TYPES
+    
+    @property
+    def allowed_video_types_list(self) -> List[str]:
+        """Parse ALLOWED_VIDEO_TYPES string into list"""
+        if isinstance(self.ALLOWED_VIDEO_TYPES, str):
+            return [t.strip() for t in self.ALLOWED_VIDEO_TYPES.split(",") if t.strip()]
+        return self.ALLOWED_VIDEO_TYPES
+    
+    # Email/SMTP Configuration
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    
+    # SMS Configuration (for OTP)
+    SMS_PROVIDER: Optional[str] = None  # e.g., "twilio", "msg91", "aws_sns"
+    SMS_API_KEY: Optional[str] = None
+    SMS_API_SECRET: Optional[str] = None
+    SMS_SENDER_ID: Optional[str] = None
     
     # Enhanced Security (Priority 1-3)
     # CSRF Protection
@@ -80,12 +122,26 @@ class Settings(BaseSettings):
     
     # IP Whitelisting for Admin Access
     ADMIN_IP_WHITELIST_ENABLED: bool = False  # Enable in production
-    ADMIN_IP_WHITELIST: List[str] = []  # Add government office IPs
+    ADMIN_IP_WHITELIST: str = ""  # Comma-separated IPs
+    
+    @property
+    def admin_ip_whitelist_list(self) -> List[str]:
+        """Parse ADMIN_IP_WHITELIST string into list"""
+        if isinstance(self.ADMIN_IP_WHITELIST, str) and self.ADMIN_IP_WHITELIST:
+            return [ip.strip() for ip in self.ADMIN_IP_WHITELIST.split(",") if ip.strip()]
+        return []
     
     # 2FA Settings
     TWO_FA_ENABLED: bool = True  # Enable 2FA for super admins
     TWO_FA_ISSUER: str = "CivicLens"  # Shown in authenticator app
-    TWO_FA_REQUIRED_FOR_ROLES: List[str] = ["super_admin"]  # Roles requiring 2FA
+    TWO_FA_REQUIRED_FOR_ROLES: str = "super_admin"  # Comma-separated roles
+    
+    @property
+    def two_fa_required_roles_list(self) -> List[str]:
+        """Parse TWO_FA_REQUIRED_FOR_ROLES string into list"""
+        if isinstance(self.TWO_FA_REQUIRED_FOR_ROLES, str) and self.TWO_FA_REQUIRED_FOR_ROLES:
+            return [role.strip() for role in self.TWO_FA_REQUIRED_FOR_ROLES.split(",") if role.strip()]
+        return []
     
     # Password Complexity
     PASSWORD_MIN_LENGTH: int = 12
