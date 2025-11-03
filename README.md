@@ -137,7 +137,7 @@ npm install
 cp .env.example .env.local
 
 # Edit .env.local
-# NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+# NEXT_PUBLIC_API_URL=http://localhost:8000/api/v2
 
 # Start development server
 npm run dev
@@ -157,7 +157,7 @@ npm install
 cp .env.example .env
 
 # Edit .env
-# VITE_API_URL=http://localhost:8000/api/v1
+# VITE_API_URL=http://localhost:8000/api/v2
 
 # Start development server
 npm run dev
@@ -313,14 +313,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-### v1.1 (Planned)
+### v2.1 (Planned)
 - [ ] Mobile apps (iOS & Android)
 - [ ] WhatsApp integration for notifications
 - [ ] Advanced AI models for priority prediction
 - [ ] Multi-city support
 - [ ] Public dashboard for transparency
 
-### v1.2 (Planned)
+### v2.2 (Planned)
 - [ ] Integration with government systems (DigiLocker, Aadhaar)
 - [ ] Chatbot for citizen queries
 - [ ] Video report support
