@@ -242,10 +242,37 @@ npm test
 
 ### Docker Deployment (Recommended)
 
+**Quick Start:**
 ```bash
-# Build and run with Docker Compose
+# Copy environment template
+cp .env.docker.example .env
+
+# Edit with your values (required: passwords, secret key)
+nano .env
+
+# Build and start all services
 docker-compose up -d
+
+# Initialize database
+docker-compose exec backend alembic upgrade head
+docker-compose exec backend python setup_production.py
+
+# Access services
+# - Backend API: http://localhost:8000
+# - Admin Dashboard: http://localhost:3000
+# - Citizen Portal: http://localhost:5173
 ```
+
+**Services Included:**
+- PostgreSQL 14 with PostGIS
+- Redis 7 (caching, rate limiting, OTP)
+- MinIO (object storage)
+- FastAPI Backend
+- **AI Worker** (background processing)
+- Next.js Admin Dashboard
+- React Citizen Portal
+
+See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete Docker guide.
 
 ### Manual Deployment
 

@@ -1,3 +1,5 @@
+# CivicLens v2.0 - Production Ready Docker Compose
+# AI-Powered Civic Issue Management System
 version: '3.8'
 
 services:
@@ -6,9 +8,9 @@ services:
     image: postgis/postgis:14-3.3
     container_name: civiclens-postgres
     environment:
-      POSTGRES_DB: civiclens
-      POSTGRES_USER: civiclens
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: civiclens_db
+      POSTGRES_USER: civiclens_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -17,12 +19,13 @@ services:
     networks:
       - civiclens-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U civiclens"]
+      test: ["CMD-SHELL", "pg_isready -U civiclens_user -d civiclens_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # Redis Cache
+  # Redis Cache (for rate limiting, caching, OTP)
   redis:
     image: redis:7-alpine
     container_name: civiclens-redis
@@ -34,12 +37,13 @@ services:
     networks:
       - civiclens-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # MinIO Object Storage
+  # MinIO Object Storage (for media files)
   minio:
     image: minio/minio:latest
     container_name: civiclens-minio
@@ -59,6 +63,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    restart: unless-stopped
 
   # FastAPI Backend
   backend:
@@ -67,7 +72,7 @@ services:
       dockerfile: Dockerfile
     container_name: civiclens-backend
     environment:
-      DATABASE_URL: postgresql://civiclens:${POSTGRES_PASSWORD:-changeme}@postgres:5432/civiclens
+      DATABASE_URL: postgresql+asyncpg://civiclens_user:${POSTGRES_PASSWORD:-changeme123}@postgres:5432/civiclens_db
       REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       MINIO_ENDPOINT: minio:9000
@@ -75,8 +80,11 @@ services:
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       ENVIRONMENT: production
       DEBUG: "false"
+      CITY_CODE: RNC
+      APP_VERSION: "2.0.0"
     volumes:
       - ./civiclens-backend/media:/app/media
+      - ./civiclens-backend/models:/app/models
     ports:
       - "8000:8000"
     networks:
@@ -93,6 +101,34 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
+
+  # AI Worker (Background Processing)
+  ai-worker:
+    build:
+      context: ./civiclens-backend
+      dockerfile: Dockerfile
+    container_name: civiclens-ai-worker
+    command: python -m app.workers.ai_worker
+    environment:
+      DATABASE_URL: postgresql+asyncpg://civiclens_user:${POSTGRES_PASSWORD:-changeme123}@postgres:5432/civiclens_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ENVIRONMENT: production
+      DEBUG: "false"
+      CITY_CODE: RNC
+      APP_VERSION: "2.0.0"
+    volumes:
+      - ./civiclens-backend/models:/app/models
+    networks:
+      - civiclens-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
   # Admin Dashboard
