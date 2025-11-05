@@ -257,14 +257,14 @@ async def review_appeal(
             appeal.rework_notes = review_data.rework_notes
             appeal.rework_completed = False
             
-            # Update report status back to IN_PROGRESS for rework
+            # Update report status to REOPENED (not IN_PROGRESS) for rework
             report_result = await db.execute(
                 select(Report).where(Report.id == appeal.report_id)
             )
             report = report_result.scalar_one_or_none()
             if report:
                 from app.models.report import ReportStatus
-                report.status = ReportStatus.IN_PROGRESS
+                report.status = ReportStatus.REOPENED  # Use REOPENED status for appeal-based rework
                 
                 # Update task for rework
                 from app.models.task import Task, TaskStatus

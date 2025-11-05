@@ -10,7 +10,7 @@ import os
 from app.config import settings
 from app.core.database import init_db, close_db, close_redis, check_redis_connection, check_database_connection
 from app.core.exceptions import CivicLensException
-from app.api.v1 import auth, reports, analytics, users, departments, appeals, escalations, audit, media
+from app.api.v1 import auth, reports, analytics, users, departments, appeals, escalations, audit, media, feedbacks
 from app.api.v1.auth_extended import router as auth_extended
 from app.api.v1.sync import router as sync_router
 
@@ -188,6 +188,7 @@ app.include_router(analytics, prefix="/api/v1")
 app.include_router(users, prefix="/api/v1")
 app.include_router(departments, prefix="/api/v1")
 app.include_router(appeals, prefix="/api/v1")
+app.include_router(feedbacks, prefix="/api/v1")
 app.include_router(escalations, prefix="/api/v1")
 app.include_router(audit, prefix="/api/v1")
 app.include_router(media, prefix="/api/v1")

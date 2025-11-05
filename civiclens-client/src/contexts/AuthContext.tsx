@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('access_token');
     
     if (token) {
       try {
@@ -37,8 +37,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Auth check failed:', error);
         // Clear invalid tokens
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         setUser(null);
       }
     }
@@ -49,8 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (accessToken: string, refreshToken: string) => {
     try {
       // Store tokens
-      localStorage.setItem('authToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('access_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
       
       // Fetch user data
       await refreshUser();

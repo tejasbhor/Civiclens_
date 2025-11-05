@@ -37,8 +37,9 @@ class ReportStateValidator:
         ReportStatus.IN_PROGRESS: {ReportStatus.PENDING_VERIFICATION, ReportStatus.ON_HOLD},
         ReportStatus.PENDING_VERIFICATION: {ReportStatus.RESOLVED, ReportStatus.REJECTED, ReportStatus.ON_HOLD},
         ReportStatus.ON_HOLD: {ReportStatus.ASSIGNED_TO_DEPARTMENT, ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.IN_PROGRESS},
-        ReportStatus.RESOLVED: {ReportStatus.CLOSED},
-        ReportStatus.CLOSED: set(),
+        ReportStatus.RESOLVED: {ReportStatus.CLOSED, ReportStatus.REOPENED},  # Allow reopening after appeal
+        ReportStatus.CLOSED: {ReportStatus.REOPENED},  # Allow reopening closed reports via appeal
+        ReportStatus.REOPENED: {ReportStatus.IN_PROGRESS},  # Reopened goes back to work
         ReportStatus.REJECTED: set(),
         ReportStatus.DUPLICATE: set(),
     }

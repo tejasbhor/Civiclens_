@@ -20,6 +20,7 @@ class ReportStatus(str, enum.Enum):
     REJECTED = "rejected"
     DUPLICATE = "duplicate"
     ON_HOLD = "on_hold"
+    REOPENED = "reopened"  # After appeal approved, before rework
 
 class ReportSeverity(str, enum.Enum):
     LOW = "low"
@@ -99,6 +100,7 @@ class Report(BaseModel):
     duplicate_of = relationship("Report", remote_side="Report.id", uselist=False)
     appeals = relationship("Appeal", back_populates="report", cascade="all, delete-orphan")
     escalations = relationship("Escalation", back_populates="report", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="report", uselist=False, cascade="all, delete-orphan")
     # validations = relationship("Validation", back_populates="report", cascade="all, delete-orphan")  # TODO: Create Validation model
     
     # Indexes

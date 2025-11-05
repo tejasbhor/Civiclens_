@@ -262,8 +262,43 @@ const SubmitReport = () => {
       // Upload photos if any
       if (photos.length > 0) {
         console.log('Uploading photos...');
-        await reportsService.uploadMedia(report.id, photos);
-        console.log('Photos uploaded');
+        try {
+          // Upload photos one by one to match backend endpoint
+          const uploadPromises = photos.map(async (photo) => {
+            const formData = new FormData();
+            formData.append('file', photo);
+            formData.append('upload_source', 'citizen_submission');
+            formData.append('is_proof_of_work', 'false');
+            
+            const response = await fetch(
+              `${import.meta.env.VITE_API_URL}/media/upload/${report.id}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: formData
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error(`Failed to upload photo: ${response.statusText}`);
+            }
+            
+            return response.json();
+          });
+          
+          await Promise.all(uploadPromises);
+          console.log('Photos uploaded');
+        } catch (uploadError) {
+          console.error('Photo upload error:', uploadError);
+          // Don't fail the whole submission if photos fail
+          toast({
+            title: "Warning",
+            description: "Report created but some photos failed to upload",
+            variant: "destructive"
+          });
+        }
       }
 
       toast({

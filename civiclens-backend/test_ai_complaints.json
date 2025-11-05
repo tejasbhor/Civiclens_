@@ -1,0 +1,378 @@
+{
+  "test_complaints": [
+    {
+      "id": 1,
+      "title": "Big pothole on Main Road near Railway Station",
+      "description": "There is a large pothole on Main Road near Ranchi Railway Station causing traffic problems. The road is damaged and needs immediate repair. Many vehicles are getting damaged.",
+      "expected_category": "roads",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["pothole", "road", "damaged", "repair"]
+    },
+    {
+      "id": 2,
+      "title": "Water pipeline burst on Station Road",
+      "description": "Water pipe has burst near Station Road. Water is leaking continuously and flooding the street. Urgent repair needed.",
+      "expected_category": "water",
+      "expected_severity": "high",
+      "expected_department": "Water Supply Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["water", "pipe", "burst", "leaking"]
+    },
+    {
+      "id": 3,
+      "title": "Garbage not collected for 5 days",
+      "description": "Garbage has not been collected from our area for the past 5 days. The dustbin is overflowing and creating hygiene issues. Please send garbage collection vehicle.",
+      "expected_category": "sanitation",
+      "expected_severity": "high",
+      "expected_department": "Sanitation Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["garbage", "collection", "dustbin", "overflowing"]
+    },
+    {
+      "id": 4,
+      "title": "Streetlight not working in Circular Road",
+      "description": "The streetlight near Circular Road is not working for the past week. The area becomes very dark at night creating safety issues.",
+      "expected_category": "streetlight",
+      "expected_severity": "medium",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["streetlight", "not working", "dark", "night"]
+    },
+    {
+      "id": 5,
+      "title": "Drainage blockage causing waterlogging",
+      "description": "The drainage system is blocked near Albert Ekka Chowk. Rainwater is not flowing and causing severe waterlogging. The entire street is flooded.",
+      "expected_category": "drainage",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["drainage", "blocked", "waterlogging", "flooded"]
+    },
+    {
+      "id": 6,
+      "title": "Broken bench in Oxygen Park",
+      "description": "The bench in Oxygen Park is broken and needs repair. It's a safety hazard for visitors.",
+      "expected_category": "public_property",
+      "expected_severity": "low",
+      "expected_department": "Horticulture Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["bench", "broken", "park"]
+    },
+    {
+      "id": 7,
+      "title": "Power outage in Doranda area",
+      "description": "There is no electricity in Doranda area since morning. The transformer seems to be faulty. Please restore power supply urgently.",
+      "expected_category": "electricity",
+      "expected_severity": "high",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["electricity", "power", "transformer", "outage"]
+    },
+    {
+      "id": 8,
+      "title": "Road cracks near Morabadi Ground",
+      "description": "Multiple cracks have appeared on the road near Morabadi Ground. The road surface is deteriorating and needs resurfacing.",
+      "expected_category": "roads",
+      "expected_severity": "medium",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["road", "cracks", "resurfacing"]
+    },
+    {
+      "id": 9,
+      "title": "No water supply in Kanke area",
+      "description": "There has been no water supply in Kanke area for the past 2 days. The water tank is empty. Please restore water supply.",
+      "expected_category": "water",
+      "expected_severity": "high",
+      "expected_department": "Water Supply Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["water", "supply", "shortage", "tank"]
+    },
+    {
+      "id": 10,
+      "title": "Dirty area near market",
+      "description": "The area near Lalpur market is very dirty. Garbage is scattered everywhere. Cleaning and sanitation required urgently.",
+      "expected_category": "sanitation",
+      "expected_severity": "medium",
+      "expected_department": "Sanitation Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["dirty", "garbage", "cleaning", "sanitation"]
+    },
+    {
+      "id": 11,
+      "title": "Multiple streetlights not working on HEC Road",
+      "description": "Around 10-12 streetlights are not working on HEC Road. The entire stretch is dark at night. Bulbs need replacement.",
+      "expected_category": "streetlight",
+      "expected_severity": "high",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["streetlight", "not working", "dark", "bulb"]
+    },
+    {
+      "id": 12,
+      "title": "Sewage overflow in residential area",
+      "description": "Sewage is overflowing from the manhole in our residential area. The drain is completely blocked. Very unhygienic situation.",
+      "expected_category": "drainage",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["sewage", "overflow", "drain", "blocked"]
+    },
+    {
+      "id": 13,
+      "title": "Tree cutting required near school",
+      "description": "A large tree near DAV School is overgrown and branches are hanging dangerously. Tree trimming or cutting required for safety.",
+      "expected_category": "public_property",
+      "expected_severity": "medium",
+      "expected_department": "Horticulture Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["tree", "cutting", "trimming"]
+    },
+    {
+      "id": 14,
+      "title": "Broken footpath near bus stand",
+      "description": "The footpath near Ranchi bus stand is completely broken. People are having difficulty walking. Repair needed urgently.",
+      "expected_category": "roads",
+      "expected_severity": "medium",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["footpath", "broken", "repair"]
+    },
+    {
+      "id": 15,
+      "title": "Water leakage from underground pipe",
+      "description": "There is continuous water leakage from an underground pipeline near Harmu Housing Colony. Water is being wasted.",
+      "expected_category": "water",
+      "expected_severity": "high",
+      "expected_department": "Water Supply Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["water", "leakage", "pipeline", "underground"]
+    },
+    {
+      "id": 16,
+      "title": "Waste pile near residential area",
+      "description": "A large pile of waste has been dumped near our residential area. It's creating foul smell and attracting flies. Immediate disposal required.",
+      "expected_category": "sanitation",
+      "expected_severity": "high",
+      "expected_department": "Sanitation Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["waste", "pile", "dumped", "disposal"]
+    },
+    {
+      "id": 17,
+      "title": "Dim streetlight near college",
+      "description": "The streetlight near Ranchi College is very dim. The bulb needs replacement for proper illumination.",
+      "expected_category": "streetlight",
+      "expected_severity": "low",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["streetlight", "dim", "bulb", "illumination"]
+    },
+    {
+      "id": 18,
+      "title": "Stagnant water causing mosquito breeding",
+      "description": "Rainwater has collected in the drainage near our area. The water is stagnant for many days and mosquitoes are breeding. Health hazard.",
+      "expected_category": "drainage",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["stagnant water", "drainage", "mosquito"]
+    },
+    {
+      "id": 19,
+      "title": "Garden maintenance needed in Tagore Hill",
+      "description": "The garden in Tagore Hill area needs maintenance. Plants are overgrown and the area looks neglected. Beautification required.",
+      "expected_category": "public_property",
+      "expected_severity": "low",
+      "expected_department": "Horticulture Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["garden", "maintenance", "plants", "beautification"]
+    },
+    {
+      "id": 20,
+      "title": "Electric wire hanging dangerously",
+      "description": "An electric wire is hanging low near Ratu Road. It's very dangerous and can cause accidents. Immediate attention required.",
+      "expected_category": "electricity",
+      "expected_severity": "critical",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["electric", "wire", "dangerous"]
+    },
+    {
+      "id": 21,
+      "title": "Road construction incomplete",
+      "description": "Road construction work near Bariatu was started but left incomplete. The road is in very bad condition with construction debris.",
+      "expected_category": "roads",
+      "expected_severity": "medium",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["road", "construction", "debris"]
+    },
+    {
+      "id": 22,
+      "title": "Low water pressure in taps",
+      "description": "We are getting very low water pressure in our area. Water is barely coming from taps. Please check the water supply system.",
+      "expected_category": "water",
+      "expected_severity": "medium",
+      "expected_department": "Water Supply Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["water", "pressure", "supply", "tap"]
+    },
+    {
+      "id": 23,
+      "title": "Public toilet not cleaned",
+      "description": "The public toilet near market area has not been cleaned for many days. It's very dirty and unhygienic. Regular cleaning needed.",
+      "expected_category": "sanitation",
+      "expected_severity": "medium",
+      "expected_department": "Sanitation Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["toilet", "cleaning", "dirty", "hygiene"]
+    },
+    {
+      "id": 24,
+      "title": "Street light pole damaged",
+      "description": "A streetlight pole near Hinoo has been damaged in an accident. The pole is bent and the light is not working.",
+      "expected_category": "streetlight",
+      "expected_severity": "high",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["streetlight", "pole", "damaged", "not working"]
+    },
+    {
+      "id": 25,
+      "title": "Manhole cover missing",
+      "description": "The manhole cover is missing near Ashok Nagar. It's very dangerous, especially at night. Someone can fall into it.",
+      "expected_category": "drainage",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["manhole", "drainage", "dangerous"]
+    },
+    {
+      "id": 26,
+      "title": "Park fence broken",
+      "description": "The fence around the park in Lalpur area is broken at multiple places. Animals are entering and damaging plants.",
+      "expected_category": "public_property",
+      "expected_severity": "medium",
+      "expected_department": "Horticulture Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["park", "fence", "broken"]
+    },
+    {
+      "id": 27,
+      "title": "Power fluctuation damaging appliances",
+      "description": "There is frequent power fluctuation in our area. Voltage is not stable and household appliances are getting damaged.",
+      "expected_category": "electricity",
+      "expected_severity": "high",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["power", "fluctuation", "voltage", "electrical"]
+    },
+    {
+      "id": 28,
+      "title": "Bridge railing damaged",
+      "description": "The railing of the bridge near Hatia is damaged. It's a safety concern for pedestrians and vehicles.",
+      "expected_category": "roads",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["bridge", "railing", "damaged"]
+    },
+    {
+      "id": 29,
+      "title": "Water contamination reported",
+      "description": "The water supply in our area seems contaminated. The water has a bad smell and color. Please check water quality urgently.",
+      "expected_category": "water",
+      "expected_severity": "high",
+      "expected_department": "Water Supply Department",
+      "expected_confidence": ">0.70",
+      "keywords_present": ["water", "contamination", "quality"]
+    },
+    {
+      "id": 30,
+      "title": "Illegal dumping of waste",
+      "description": "Someone is illegally dumping construction waste near our area. The waste pile is growing and blocking the road.",
+      "expected_category": "sanitation",
+      "expected_severity": "medium",
+      "expected_department": "Sanitation Department",
+      "expected_confidence": ">0.65",
+      "keywords_present": ["dumping", "waste", "disposal"]
+    },
+    {
+      "id": 31,
+      "title": "General complaint about civic services",
+      "description": "I want to complain about the overall civic services in our area. Multiple issues need attention.",
+      "expected_category": "other",
+      "expected_severity": "low",
+      "expected_department": null,
+      "expected_confidence": "<0.50",
+      "keywords_present": ["general", "complaint"],
+      "note": "Ambiguous - should go to manual review"
+    },
+    {
+      "id": 32,
+      "title": "Road and drainage both issues",
+      "description": "There is a pothole on the road and also the nearby drain is blocked. Both need fixing.",
+      "expected_category": "roads or drainage",
+      "expected_severity": "medium",
+      "expected_department": "Public Works Department",
+      "expected_confidence": "0.50-0.65",
+      "keywords_present": ["road", "pothole", "drain", "blocked"],
+      "note": "Ambiguous - multiple categories"
+    },
+    {
+      "id": 33,
+      "title": "Urgent: Major accident risk on highway",
+      "description": "There is a huge pothole on NH-33 highway near Ranchi. Multiple accidents have already occurred. This is a life-threatening situation requiring immediate action.",
+      "expected_category": "roads",
+      "expected_severity": "high",
+      "expected_department": "Public Works Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["pothole", "highway", "accident", "life-threatening"]
+    },
+    {
+      "id": 34,
+      "title": "Playground equipment broken",
+      "description": "The swings and slides in the children's playground at Kanke are broken and rusty. Safety hazard for children.",
+      "expected_category": "public_property",
+      "expected_severity": "medium",
+      "expected_department": "Horticulture Department",
+      "expected_confidence": ">0.60",
+      "keywords_present": ["playground", "broken", "children"]
+    },
+    {
+      "id": 35,
+      "title": "Short circuit in street light",
+      "description": "There seems to be a short circuit in the streetlight near Kokar. Sparks are visible. Very dangerous situation.",
+      "expected_category": "streetlight",
+      "expected_severity": "critical",
+      "expected_department": "Electrical Department",
+      "expected_confidence": ">0.75",
+      "keywords_present": ["short circuit", "streetlight", "sparks", "dangerous"]
+    }
+  ],
+  "test_categories": {
+    "roads": [1, 8, 14, 21, 28, 33],
+    "water": [2, 9, 15, 22, 29],
+    "sanitation": [3, 10, 16, 23, 30],
+    "streetlight": [4, 11, 17, 24, 35],
+    "drainage": [5, 12, 18, 25],
+    "public_property": [6, 13, 19, 26, 34],
+    "electricity": [7, 20, 27],
+    "other": [31, 32]
+  },
+  "test_severity": {
+    "critical": [20, 35],
+    "high": [1, 2, 3, 5, 7, 9, 11, 12, 15, 16, 18, 24, 25, 27, 28, 29, 33],
+    "medium": [4, 8, 10, 13, 14, 17, 21, 22, 23, 26, 30, 32, 34],
+    "low": [6, 19, 31]
+  },
+  "edge_cases": {
+    "ambiguous": [31, 32],
+    "high_confidence": [2, 4, 7, 9, 11, 12, 15, 20, 24, 33, 35],
+    "multiple_keywords": [1, 2, 3, 5, 7, 12, 15, 16, 18, 20, 33],
+    "life_threatening": [20, 25, 29, 33, 35]
+  }
+}

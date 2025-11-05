@@ -1,0 +1,1291 @@
+{
+  "summary": {
+    "total_tests": 35,
+    "category_accuracy": 80.0,
+    "severity_accuracy": 37.142857142857146,
+    "high_confidence_count": 15,
+    "keyword_boost_count": 25
+  },
+  "results": [
+    {
+      "id": 1,
+      "title": "Big pothole on Main Road near Railway Station",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.513,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "roads": 0.951,
+        "other": 0.024,
+        "streetlight": 0.008,
+        "public_property": 0.005,
+        "electricity": 0.004,
+        "drainage": 0.004,
+        "water": 0.003,
+        "sanitation": 0.001
+      },
+      "all_severity_scores": {
+        "high": 0.513,
+        "medium": 0.42,
+        "critical": 0.061,
+        "low": 0.006
+      },
+      "keywords_present": [
+        "pothole",
+        "road",
+        "damaged",
+        "repair"
+      ],
+      "note": ""
+    },
+    {
+      "id": 2,
+      "title": "Water pipeline burst on Station Road",
+      "predicted_category": "water",
+      "expected_category": "water",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.766,
+      "priority": 7,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "water": 0.879,
+        "roads": 0.086,
+        "drainage": 0.013,
+        "other": 0.008,
+        "streetlight": 0.006,
+        "public_property": 0.003,
+        "electricity": 0.002,
+        "sanitation": 0.002
+      },
+      "all_severity_scores": {
+        "high": 0.766,
+        "critical": 0.21,
+        "medium": 0.017,
+        "low": 0.006
+      },
+      "keywords_present": [
+        "water",
+        "pipe",
+        "burst",
+        "leaking"
+      ],
+      "note": ""
+    },
+    {
+      "id": 3,
+      "title": "Garbage not collected for 5 days",
+      "predicted_category": "sanitation",
+      "expected_category": "sanitation",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.543,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "sanitation": 0.974,
+        "other": 0.011,
+        "drainage": 0.003,
+        "public_property": 0.003,
+        "roads": 0.003,
+        "streetlight": 0.002,
+        "electricity": 0.002,
+        "water": 0.001
+      },
+      "all_severity_scores": {
+        "high": 0.543,
+        "medium": 0.364,
+        "critical": 0.085,
+        "low": 0.008
+      },
+      "keywords_present": [
+        "garbage",
+        "collection",
+        "dustbin",
+        "overflowing"
+      ],
+      "note": ""
+    },
+    {
+      "id": 4,
+      "title": "Streetlight not working in Circular Road",
+      "predicted_category": "streetlight",
+      "expected_category": "streetlight",
+      "category_correct": true,
+      "category_confidence": 0.54,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.431,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "streetlight": 0.42,
+        "roads": 0.214,
+        "other": 0.201,
+        "electricity": 0.06,
+        "public_property": 0.037,
+        "drainage": 0.03,
+        "water": 0.019,
+        "sanitation": 0.019
+      },
+      "all_severity_scores": {
+        "high": 0.431,
+        "medium": 0.384,
+        "critical": 0.165,
+        "low": 0.019
+      },
+      "keywords_present": [
+        "streetlight",
+        "not working",
+        "dark",
+        "night"
+      ],
+      "note": ""
+    },
+    {
+      "id": 5,
+      "title": "Drainage blockage causing waterlogging",
+      "predicted_category": "drainage",
+      "expected_category": "drainage",
+      "category_correct": true,
+      "category_confidence": 0.464,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.541,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "drainage": 0.314,
+        "roads": 0.224,
+        "other": 0.166,
+        "water": 0.149,
+        "streetlight": 0.057,
+        "public_property": 0.048,
+        "electricity": 0.022,
+        "sanitation": 0.021
+      },
+      "all_severity_scores": {
+        "high": 0.541,
+        "medium": 0.248,
+        "critical": 0.191,
+        "low": 0.02
+      },
+      "keywords_present": [
+        "drainage",
+        "blocked",
+        "waterlogging",
+        "flooded"
+      ],
+      "note": ""
+    },
+    {
+      "id": 6,
+      "title": "Broken bench in Oxygen Park",
+      "predicted_category": "other",
+      "expected_category": "public_property",
+      "category_correct": false,
+      "category_confidence": 0.4,
+      "predicted_severity": "medium",
+      "expected_severity": "low",
+      "severity_correct": false,
+      "severity_confidence": 0.498,
+      "priority": 4,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "public_property": 0.275,
+        "roads": 0.268,
+        "other": 0.2,
+        "streetlight": 0.089,
+        "sanitation": 0.045,
+        "drainage": 0.043,
+        "electricity": 0.042,
+        "water": 0.039
+      },
+      "all_severity_scores": {
+        "medium": 0.498,
+        "high": 0.385,
+        "critical": 0.103,
+        "low": 0.014
+      },
+      "keywords_present": [
+        "bench",
+        "broken",
+        "park"
+      ],
+      "note": ""
+    },
+    {
+      "id": 7,
+      "title": "Power outage in Doranda area",
+      "predicted_category": "electricity",
+      "expected_category": "electricity",
+      "category_correct": true,
+      "category_confidence": 0.983,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.708,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "electricity": 0.863,
+        "other": 0.04,
+        "roads": 0.035,
+        "streetlight": 0.024,
+        "public_property": 0.014,
+        "water": 0.009,
+        "drainage": 0.009,
+        "sanitation": 0.007
+      },
+      "all_severity_scores": {
+        "high": 0.708,
+        "critical": 0.205,
+        "medium": 0.082,
+        "low": 0.005
+      },
+      "keywords_present": [
+        "electricity",
+        "power",
+        "transformer",
+        "outage"
+      ],
+      "note": ""
+    },
+    {
+      "id": 8,
+      "title": "Road cracks near Morabadi Ground",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.436,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "roads": 0.97,
+        "other": 0.01,
+        "streetlight": 0.006,
+        "public_property": 0.005,
+        "water": 0.003,
+        "drainage": 0.002,
+        "electricity": 0.002,
+        "sanitation": 0.001
+      },
+      "all_severity_scores": {
+        "high": 0.436,
+        "medium": 0.412,
+        "critical": 0.137,
+        "low": 0.016
+      },
+      "keywords_present": [
+        "road",
+        "cracks",
+        "resurfacing"
+      ],
+      "note": ""
+    },
+    {
+      "id": 9,
+      "title": "No water supply in Kanke area",
+      "predicted_category": "water",
+      "expected_category": "water",
+      "category_correct": true,
+      "category_confidence": 0.581,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.569,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "water": 0.431,
+        "other": 0.144,
+        "roads": 0.108,
+        "drainage": 0.091,
+        "streetlight": 0.074,
+        "public_property": 0.067,
+        "sanitation": 0.044,
+        "electricity": 0.042
+      },
+      "all_severity_scores": {
+        "high": 0.569,
+        "medium": 0.209,
+        "critical": 0.207,
+        "low": 0.015
+      },
+      "keywords_present": [
+        "water",
+        "supply",
+        "shortage",
+        "tank"
+      ],
+      "note": ""
+    },
+    {
+      "id": 10,
+      "title": "Dirty area near market",
+      "predicted_category": "sanitation",
+      "expected_category": "sanitation",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.523,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "sanitation": 0.87,
+        "other": 0.045,
+        "roads": 0.023,
+        "streetlight": 0.017,
+        "public_property": 0.016,
+        "drainage": 0.014,
+        "electricity": 0.009,
+        "water": 0.007
+      },
+      "all_severity_scores": {
+        "high": 0.523,
+        "medium": 0.439,
+        "critical": 0.035,
+        "low": 0.003
+      },
+      "keywords_present": [
+        "dirty",
+        "garbage",
+        "cleaning",
+        "sanitation"
+      ],
+      "note": ""
+    },
+    {
+      "id": 11,
+      "title": "Multiple streetlights not working on HEC Road",
+      "predicted_category": "streetlight",
+      "expected_category": "streetlight",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.423,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "streetlight": 0.905,
+        "other": 0.041,
+        "roads": 0.019,
+        "electricity": 0.012,
+        "drainage": 0.007,
+        "public_property": 0.007,
+        "water": 0.005,
+        "sanitation": 0.005
+      },
+      "all_severity_scores": {
+        "high": 0.423,
+        "medium": 0.398,
+        "critical": 0.149,
+        "low": 0.03
+      },
+      "keywords_present": [
+        "streetlight",
+        "not working",
+        "dark",
+        "bulb"
+      ],
+      "note": ""
+    },
+    {
+      "id": 12,
+      "title": "Sewage overflow in residential area",
+      "predicted_category": "drainage",
+      "expected_category": "drainage",
+      "category_correct": true,
+      "category_confidence": 0.847,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.581,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "drainage": 0.727,
+        "other": 0.084,
+        "sanitation": 0.066,
+        "roads": 0.043,
+        "water": 0.027,
+        "streetlight": 0.024,
+        "public_property": 0.02,
+        "electricity": 0.009
+      },
+      "all_severity_scores": {
+        "high": 0.581,
+        "medium": 0.275,
+        "critical": 0.117,
+        "low": 0.027
+      },
+      "keywords_present": [
+        "sewage",
+        "overflow",
+        "drain",
+        "blocked"
+      ],
+      "note": ""
+    },
+    {
+      "id": 13,
+      "title": "Tree cutting required near school",
+      "predicted_category": "public_property",
+      "expected_category": "public_property",
+      "category_correct": true,
+      "category_confidence": 0.337,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.46,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "public_property": 0.247,
+        "other": 0.205,
+        "roads": 0.164,
+        "electricity": 0.095,
+        "water": 0.091,
+        "streetlight": 0.081,
+        "drainage": 0.07,
+        "sanitation": 0.047
+      },
+      "all_severity_scores": {
+        "high": 0.46,
+        "medium": 0.365,
+        "critical": 0.163,
+        "low": 0.011
+      },
+      "keywords_present": [
+        "tree",
+        "cutting",
+        "trimming"
+      ],
+      "note": ""
+    },
+    {
+      "id": 14,
+      "title": "Broken footpath near bus stand",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.739,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.746,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "roads": 0.739,
+        "other": 0.085,
+        "streetlight": 0.066,
+        "public_property": 0.039,
+        "electricity": 0.02,
+        "drainage": 0.019,
+        "sanitation": 0.017,
+        "water": 0.016
+      },
+      "all_severity_scores": {
+        "high": 0.746,
+        "medium": 0.15,
+        "critical": 0.1,
+        "low": 0.004
+      },
+      "keywords_present": [
+        "footpath",
+        "broken",
+        "repair"
+      ],
+      "note": ""
+    },
+    {
+      "id": 15,
+      "title": "Water leakage from underground pipe",
+      "predicted_category": "water",
+      "expected_category": "water",
+      "category_correct": true,
+      "category_confidence": 0.978,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.53,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "water": 0.858,
+        "other": 0.036,
+        "drainage": 0.03,
+        "roads": 0.024,
+        "streetlight": 0.023,
+        "public_property": 0.015,
+        "sanitation": 0.008,
+        "electricity": 0.006
+      },
+      "all_severity_scores": {
+        "high": 0.53,
+        "critical": 0.297,
+        "medium": 0.161,
+        "low": 0.012
+      },
+      "keywords_present": [
+        "water",
+        "leakage",
+        "pipeline",
+        "underground"
+      ],
+      "note": ""
+    },
+    {
+      "id": 16,
+      "title": "Waste pile near residential area",
+      "predicted_category": "sanitation",
+      "expected_category": "sanitation",
+      "category_correct": true,
+      "category_confidence": 0.667,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.656,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "sanitation": 0.577,
+        "other": 0.22,
+        "public_property": 0.058,
+        "roads": 0.042,
+        "drainage": 0.031,
+        "streetlight": 0.029,
+        "water": 0.022,
+        "electricity": 0.02
+      },
+      "all_severity_scores": {
+        "high": 0.656,
+        "medium": 0.226,
+        "critical": 0.114,
+        "low": 0.005
+      },
+      "keywords_present": [
+        "waste",
+        "pile",
+        "dumped",
+        "disposal"
+      ],
+      "note": ""
+    },
+    {
+      "id": 17,
+      "title": "Dim streetlight near college",
+      "predicted_category": "streetlight",
+      "expected_category": "streetlight",
+      "category_correct": true,
+      "category_confidence": 0.99,
+      "predicted_severity": "medium",
+      "expected_severity": "low",
+      "severity_correct": false,
+      "severity_confidence": 0.518,
+      "priority": 4,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "streetlight": 0.9,
+        "other": 0.044,
+        "roads": 0.02,
+        "electricity": 0.012,
+        "public_property": 0.008,
+        "sanitation": 0.005,
+        "water": 0.005,
+        "drainage": 0.005
+      },
+      "all_severity_scores": {
+        "medium": 0.518,
+        "high": 0.378,
+        "critical": 0.079,
+        "low": 0.025
+      },
+      "keywords_present": [
+        "streetlight",
+        "dim",
+        "bulb",
+        "illumination"
+      ],
+      "note": ""
+    },
+    {
+      "id": 18,
+      "title": "Stagnant water causing mosquito breeding",
+      "predicted_category": "drainage",
+      "expected_category": "drainage",
+      "category_correct": true,
+      "category_confidence": 0.327,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.488,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "drainage": 0.207,
+        "water": 0.2,
+        "other": 0.196,
+        "roads": 0.117,
+        "public_property": 0.102,
+        "sanitation": 0.07,
+        "streetlight": 0.066,
+        "electricity": 0.043
+      },
+      "all_severity_scores": {
+        "high": 0.488,
+        "medium": 0.377,
+        "critical": 0.125,
+        "low": 0.01
+      },
+      "keywords_present": [
+        "stagnant water",
+        "drainage",
+        "mosquito"
+      ],
+      "note": ""
+    },
+    {
+      "id": 19,
+      "title": "Garden maintenance needed in Tagore Hill",
+      "predicted_category": "other",
+      "expected_category": "public_property",
+      "category_correct": false,
+      "category_confidence": 0.4,
+      "predicted_severity": "medium",
+      "expected_severity": "low",
+      "severity_correct": false,
+      "severity_confidence": 0.632,
+      "priority": 4,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "other": 0.322,
+        "public_property": 0.262,
+        "electricity": 0.086,
+        "streetlight": 0.08,
+        "roads": 0.075,
+        "drainage": 0.066,
+        "water": 0.062,
+        "sanitation": 0.047
+      },
+      "all_severity_scores": {
+        "medium": 0.632,
+        "high": 0.244,
+        "critical": 0.087,
+        "low": 0.036
+      },
+      "keywords_present": [
+        "garden",
+        "maintenance",
+        "plants",
+        "beautification"
+      ],
+      "note": ""
+    },
+    {
+      "id": 20,
+      "title": "Electric wire hanging dangerously",
+      "predicted_category": "other",
+      "expected_category": "electricity",
+      "category_correct": false,
+      "category_confidence": 0.4,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.704,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "roads": 0.354,
+        "electricity": 0.267,
+        "other": 0.153,
+        "streetlight": 0.078,
+        "public_property": 0.049,
+        "water": 0.039,
+        "drainage": 0.031,
+        "sanitation": 0.029
+      },
+      "all_severity_scores": {
+        "high": 0.704,
+        "critical": 0.176,
+        "medium": 0.114,
+        "low": 0.006
+      },
+      "keywords_present": [
+        "electric",
+        "wire",
+        "dangerous"
+      ],
+      "note": ""
+    },
+    {
+      "id": 21,
+      "title": "Road construction incomplete",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.988,
+      "predicted_severity": "medium",
+      "expected_severity": "medium",
+      "severity_correct": true,
+      "severity_confidence": 0.467,
+      "priority": 4,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "roads": 0.898,
+        "other": 0.042,
+        "streetlight": 0.019,
+        "drainage": 0.01,
+        "water": 0.009,
+        "public_property": 0.008,
+        "electricity": 0.007,
+        "sanitation": 0.007
+      },
+      "all_severity_scores": {
+        "medium": 0.467,
+        "high": 0.356,
+        "critical": 0.141,
+        "low": 0.036
+      },
+      "keywords_present": [
+        "road",
+        "construction",
+        "debris"
+      ],
+      "note": ""
+    },
+    {
+      "id": 22,
+      "title": "Low water pressure in taps",
+      "predicted_category": "water",
+      "expected_category": "water",
+      "category_correct": true,
+      "category_confidence": 0.505,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.506,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "water": 0.355,
+        "other": 0.224,
+        "roads": 0.107,
+        "streetlight": 0.092,
+        "public_property": 0.071,
+        "drainage": 0.065,
+        "electricity": 0.05,
+        "sanitation": 0.037
+      },
+      "all_severity_scores": {
+        "high": 0.506,
+        "medium": 0.269,
+        "critical": 0.202,
+        "low": 0.023
+      },
+      "keywords_present": [
+        "water",
+        "pressure",
+        "supply",
+        "tap"
+      ],
+      "note": ""
+    },
+    {
+      "id": 23,
+      "title": "Public toilet not cleaned",
+      "predicted_category": "other",
+      "expected_category": "sanitation",
+      "category_correct": false,
+      "category_confidence": 0.493,
+      "predicted_severity": "medium",
+      "expected_severity": "medium",
+      "severity_correct": true,
+      "severity_confidence": 0.829,
+      "priority": 5,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "other": 0.493,
+        "sanitation": 0.22,
+        "roads": 0.081,
+        "drainage": 0.063,
+        "public_property": 0.047,
+        "streetlight": 0.045,
+        "water": 0.031,
+        "electricity": 0.021
+      },
+      "all_severity_scores": {
+        "medium": 0.829,
+        "high": 0.141,
+        "critical": 0.024,
+        "low": 0.007
+      },
+      "keywords_present": [
+        "toilet",
+        "cleaning",
+        "dirty",
+        "hygiene"
+      ],
+      "note": ""
+    },
+    {
+      "id": 24,
+      "title": "Street light pole damaged",
+      "predicted_category": "streetlight",
+      "expected_category": "streetlight",
+      "category_correct": true,
+      "category_confidence": 0.925,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.497,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "streetlight": 0.805,
+        "roads": 0.059,
+        "other": 0.056,
+        "public_property": 0.026,
+        "water": 0.014,
+        "sanitation": 0.014,
+        "electricity": 0.014,
+        "drainage": 0.012
+      },
+      "all_severity_scores": {
+        "high": 0.497,
+        "medium": 0.263,
+        "critical": 0.202,
+        "low": 0.038
+      },
+      "keywords_present": [
+        "streetlight",
+        "pole",
+        "damaged",
+        "not working"
+      ],
+      "note": ""
+    },
+    {
+      "id": 25,
+      "title": "Manhole cover missing",
+      "predicted_category": "roads",
+      "expected_category": "drainage",
+      "category_correct": false,
+      "category_confidence": 0.401,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.481,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "roads": 0.401,
+        "other": 0.174,
+        "drainage": 0.139,
+        "streetlight": 0.108,
+        "sanitation": 0.063,
+        "water": 0.046,
+        "public_property": 0.046,
+        "electricity": 0.024
+      },
+      "all_severity_scores": {
+        "high": 0.481,
+        "critical": 0.335,
+        "medium": 0.171,
+        "low": 0.012
+      },
+      "keywords_present": [
+        "manhole",
+        "drainage",
+        "dangerous"
+      ],
+      "note": ""
+    },
+    {
+      "id": 26,
+      "title": "Park fence broken",
+      "predicted_category": "public_property",
+      "expected_category": "public_property",
+      "category_correct": true,
+      "category_confidence": 0.943,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.481,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "public_property": 0.823,
+        "other": 0.074,
+        "roads": 0.042,
+        "streetlight": 0.029,
+        "water": 0.01,
+        "sanitation": 0.008,
+        "drainage": 0.008,
+        "electricity": 0.006
+      },
+      "all_severity_scores": {
+        "high": 0.481,
+        "critical": 0.3,
+        "medium": 0.2,
+        "low": 0.019
+      },
+      "keywords_present": [
+        "park",
+        "fence",
+        "broken"
+      ],
+      "note": ""
+    },
+    {
+      "id": 27,
+      "title": "Power fluctuation damaging appliances",
+      "predicted_category": "electricity",
+      "expected_category": "electricity",
+      "category_correct": true,
+      "category_confidence": 0.586,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.582,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "electricity": 0.586,
+        "other": 0.138,
+        "streetlight": 0.11,
+        "roads": 0.053,
+        "drainage": 0.034,
+        "water": 0.032,
+        "public_property": 0.028,
+        "sanitation": 0.019
+      },
+      "all_severity_scores": {
+        "high": 0.582,
+        "medium": 0.249,
+        "critical": 0.149,
+        "low": 0.02
+      },
+      "keywords_present": [
+        "power",
+        "fluctuation",
+        "voltage",
+        "electrical"
+      ],
+      "note": ""
+    },
+    {
+      "id": 28,
+      "title": "Bridge railing damaged",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.356,
+      "predicted_severity": "high",
+      "expected_severity": "high",
+      "severity_correct": true,
+      "severity_confidence": 0.568,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "roads": 0.356,
+        "other": 0.243,
+        "streetlight": 0.158,
+        "public_property": 0.076,
+        "water": 0.049,
+        "drainage": 0.048,
+        "electricity": 0.038,
+        "sanitation": 0.033
+      },
+      "all_severity_scores": {
+        "high": 0.568,
+        "medium": 0.23,
+        "critical": 0.174,
+        "low": 0.028
+      },
+      "keywords_present": [
+        "bridge",
+        "railing",
+        "damaged"
+      ],
+      "note": ""
+    },
+    {
+      "id": 29,
+      "title": "Water contamination reported",
+      "predicted_category": "water",
+      "expected_category": "water",
+      "category_correct": true,
+      "category_confidence": 0.375,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.625,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "water": 0.255,
+        "other": 0.252,
+        "roads": 0.156,
+        "streetlight": 0.112,
+        "public_property": 0.07,
+        "drainage": 0.058,
+        "electricity": 0.054,
+        "sanitation": 0.044
+      },
+      "all_severity_scores": {
+        "high": 0.625,
+        "critical": 0.192,
+        "medium": 0.172,
+        "low": 0.012
+      },
+      "keywords_present": [
+        "water",
+        "contamination",
+        "quality"
+      ],
+      "note": ""
+    },
+    {
+      "id": 30,
+      "title": "Illegal dumping of waste",
+      "predicted_category": "sanitation",
+      "expected_category": "sanitation",
+      "category_correct": true,
+      "category_confidence": 0.337,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.491,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "sanitation": 0.277,
+        "other": 0.202,
+        "roads": 0.176,
+        "drainage": 0.096,
+        "public_property": 0.089,
+        "streetlight": 0.088,
+        "electricity": 0.038,
+        "water": 0.034
+      },
+      "all_severity_scores": {
+        "high": 0.491,
+        "medium": 0.286,
+        "critical": 0.202,
+        "low": 0.021
+      },
+      "keywords_present": [
+        "dumping",
+        "waste",
+        "disposal"
+      ],
+      "note": ""
+    },
+    {
+      "id": 31,
+      "title": "General complaint about civic services",
+      "predicted_category": "roads",
+      "expected_category": "other",
+      "category_correct": false,
+      "category_confidence": 0.359,
+      "predicted_severity": "medium",
+      "expected_severity": "low",
+      "severity_correct": false,
+      "severity_confidence": 0.602,
+      "priority": 4,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "roads": 0.359,
+        "other": 0.234,
+        "streetlight": 0.09,
+        "drainage": 0.083,
+        "electricity": 0.067,
+        "water": 0.065,
+        "public_property": 0.055,
+        "sanitation": 0.045
+      },
+      "all_severity_scores": {
+        "medium": 0.602,
+        "high": 0.213,
+        "critical": 0.096,
+        "low": 0.089
+      },
+      "keywords_present": [
+        "general",
+        "complaint"
+      ],
+      "note": "Ambiguous - should go to manual review"
+    },
+    {
+      "id": 32,
+      "title": "Road and drainage both issues",
+      "predicted_category": "roads",
+      "expected_category": "roads or drainage",
+      "category_correct": true,
+      "category_confidence": 0.98,
+      "predicted_severity": "medium",
+      "expected_severity": "medium",
+      "severity_correct": true,
+      "severity_confidence": 0.53,
+      "priority": 4,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "roads": 0.92,
+        "other": 0.022,
+        "drainage": 0.022,
+        "streetlight": 0.011,
+        "public_property": 0.007,
+        "water": 0.007,
+        "electricity": 0.007,
+        "sanitation": 0.004
+      },
+      "all_severity_scores": {
+        "medium": 0.53,
+        "high": 0.415,
+        "critical": 0.047,
+        "low": 0.008
+      },
+      "keywords_present": [
+        "road",
+        "pothole",
+        "drain",
+        "blocked"
+      ],
+      "note": "Ambiguous - multiple categories"
+    },
+    {
+      "id": 33,
+      "title": "Urgent: Major accident risk on highway",
+      "predicted_category": "roads",
+      "expected_category": "roads",
+      "category_correct": true,
+      "category_confidence": 0.93,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.853,
+      "priority": 7,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "roads": 0.87,
+        "other": 0.048,
+        "streetlight": 0.02,
+        "electricity": 0.015,
+        "drainage": 0.014,
+        "public_property": 0.014,
+        "water": 0.011,
+        "sanitation": 0.008
+      },
+      "all_severity_scores": {
+        "high": 0.853,
+        "critical": 0.141,
+        "medium": 0.004,
+        "low": 0.002
+      },
+      "keywords_present": [
+        "pothole",
+        "highway",
+        "accident",
+        "life-threatening"
+      ],
+      "note": ""
+    },
+    {
+      "id": 34,
+      "title": "Playground equipment broken",
+      "predicted_category": "other",
+      "expected_category": "public_property",
+      "category_correct": false,
+      "category_confidence": 0.332,
+      "predicted_severity": "high",
+      "expected_severity": "medium",
+      "severity_correct": false,
+      "severity_confidence": 0.515,
+      "priority": 6,
+      "method": "zero_shot",
+      "all_category_scores": {
+        "other": 0.332,
+        "roads": 0.162,
+        "public_property": 0.16,
+        "streetlight": 0.111,
+        "water": 0.065,
+        "electricity": 0.063,
+        "drainage": 0.056,
+        "sanitation": 0.051
+      },
+      "all_severity_scores": {
+        "high": 0.515,
+        "medium": 0.341,
+        "critical": 0.12,
+        "low": 0.024
+      },
+      "keywords_present": [
+        "playground",
+        "broken",
+        "children"
+      ],
+      "note": ""
+    },
+    {
+      "id": 35,
+      "title": "Short circuit in street light",
+      "predicted_category": "streetlight",
+      "expected_category": "streetlight",
+      "category_correct": true,
+      "category_confidence": 0.534,
+      "predicted_severity": "high",
+      "expected_severity": "critical",
+      "severity_correct": false,
+      "severity_confidence": 0.494,
+      "priority": 6,
+      "method": "keyword_boost",
+      "all_category_scores": {
+        "streetlight": 0.474,
+        "electricity": 0.196,
+        "roads": 0.126,
+        "other": 0.11,
+        "public_property": 0.034,
+        "water": 0.022,
+        "drainage": 0.02,
+        "sanitation": 0.018
+      },
+      "all_severity_scores": {
+        "high": 0.494,
+        "critical": 0.335,
+        "medium": 0.157,
+        "low": 0.013
+      },
+      "keywords_present": [
+        "short circuit",
+        "streetlight",
+        "sparks",
+        "dangerous"
+      ],
+      "note": ""
+    }
+  ]
+}

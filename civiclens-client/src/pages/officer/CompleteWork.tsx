@@ -59,7 +59,7 @@ const CompleteWork = () => {
         `${import.meta.env.VITE_API_URL}/reports/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
           }
         }
       );
@@ -70,7 +70,7 @@ const CompleteWork = () => {
         `${import.meta.env.VITE_API_URL}/media/report/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
           }
         }
       );
@@ -164,7 +164,7 @@ const CompleteWork = () => {
           {
             headers: {
               'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             }
           }
         );
@@ -198,7 +198,7 @@ const CompleteWork = () => {
         submitFormData,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
           }
         }
       );

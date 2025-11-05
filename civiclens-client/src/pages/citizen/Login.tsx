@@ -27,7 +27,7 @@ const CitizenLogin = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('access_token');
     if (token) {
       navigate('/citizen/dashboard');
     }

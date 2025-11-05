@@ -15,7 +15,7 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor - Add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && originalRequest) {
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem('refresh_token');
       
       if (refreshToken) {
         try {
@@ -44,8 +44,8 @@ apiClient.interceptors.response.use(
           const { access_token, refresh_token } = response.data;
           
           // Update tokens
-          localStorage.setItem('authToken', access_token);
-          localStorage.setItem('refreshToken', refresh_token);
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('refresh_token', refresh_token);
           
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
