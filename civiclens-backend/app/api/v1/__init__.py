@@ -10,6 +10,9 @@ from .audit import router as audit_router
 from .media import router as media_router
 from .tasks import router as tasks_router
 from .ai_insights import router as ai_insights_router
+from .notifications import router as notifications_router
+from .feedback import router as feedback_router
+from .hold_approvals import router as hold_approvals_router
 
 # Expose the routers for main.py to use
 auth = auth_router
@@ -24,5 +27,8 @@ audit = audit_router
 media = media_router
 tasks = tasks_router
 ai_insights = ai_insights_router
+notifications = notifications_router
+feedback = feedback_router
+hold_approvals = hold_approvals_router
 
-__all__ = ["auth", "reports", "analytics", "users", "departments", "appeals", "feedbacks", "escalations", "audit", "media", "tasks", "ai_insights"]
+__all__ = ["auth", "reports", "analytics", "users", "departments", "appeals", "feedbacks", "escalations", "audit", "media", "tasks", "ai_insights", "notifications", "feedback", "hold_approvals"]

@@ -21,6 +21,14 @@ from app.models.user import User, UserRole, ProfileCompletionLevel
 from app.core.security import get_password_hash
 from app.db.seeds.ranchi_departments import DEPARTMENTS, OFFICERS
 
+# Import all models to ensure relationships are resolved
+# This is needed for SQLAlchemy to properly initialize relationships
+from app.models import (
+    Department, Report, Task, Session, Notification, Feedback,
+    Appeal, Escalation, AreaAssignment, RoleHistory, Media,
+    ReportStatusHistory, ClientSyncState, AuditLog
+)
+
 
 async def seed_departments(db: AsyncSession):
     """Seed departments"""
@@ -203,4 +211,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--clear":
         asyncio.run(clear_all())
     else:
-        asyncio.run(seed_all())
+        asyncio.run(seed_ranchi_data())

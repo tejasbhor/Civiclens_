@@ -7,6 +7,7 @@ import { ArrowLeft, Phone, Shield, Mail, User, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/contexts/AuthContext";
+import { isCitizen, getDashboardPath } from "@/utils/authHelpers";
 
 type AuthMode = 'select' | 'quick-otp' | 'full-register' | 'password-login';
 type AuthStep = 'phone' | 'otp' | 'register' | 'password';
@@ -23,17 +24,52 @@ const CitizenLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
 
+  // Redirect if already logged in as citizen
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      navigate('/citizen/dashboard');
+    if (!authLoading && user) {
+      if (isCitizen(user.role)) {
+        navigate('/citizen/dashboard', { replace: true });
+      } else {
+        // User is an officer, redirect to officer dashboard
+        navigate('/officer/dashboard', { replace: true });
+      }
     }
-  }, [navigate]);
+  }, [user, authLoading, navigate]);
+
+  // Normalize phone number to backend format (+91XXXXXXXXXX)
+  const normalizePhoneNumber = (phone: string): string => {
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, '');
+    
+    // If it's already 10 digits, add +91 prefix
+    if (digits.length === 10) {
+      // Check if first digit is valid (should be 1-9, not 0)
+      if (digits[0] === '0') {
+        throw new Error('Phone number cannot start with 0');
+      }
+      return `+91${digits}`;
+    }
+    
+    // If it starts with 91 and has 12 digits total, add +
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
+    }
+    
+    // If it already has +91, return as is (after cleaning)
+    if (phone.startsWith('+91')) {
+      const cleaned = phone.replace(/\D/g, '').replace(/^91/, '');
+      if (cleaned.length === 10 && cleaned[0] !== '0') {
+        return `+91${cleaned}`;
+    }
+    }
+    
+    throw new Error('Invalid phone number format');
+  };
 
   const handleRequestOtp = async () => {
+    // Validate phone number length
     if (phone.length !== 10) {
       toast({
         title: "Invalid Phone Number",
@@ -43,9 +79,21 @@ const CitizenLogin = () => {
       return;
     }
 
+    // Check if phone number starts with 0 (invalid)
+    if (phone[0] === '0') {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Phone number cannot start with 0. Please enter a valid 10-digit number starting with 1-9.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await authService.requestOTP(phone);
+      // Normalize phone number before sending
+      const normalizedPhone = normalizePhoneNumber(phone);
+      const response = await authService.requestOTP(normalizedPhone);
       toast({
         title: "OTP Sent!",
         description: response.message + (response.otp ? ` (Dev OTP: ${response.otp})` : ''),
@@ -63,11 +111,20 @@ const CitizenLogin = () => {
         });
       }, 1000);
     } catch (error: any) {
+      // Handle normalization errors
+      if (error.message && error.message.includes('phone number')) {
+        toast({
+          title: "Invalid Phone Number",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
       toast({
         title: "Error",
-        description: error.response?.data?.detail || "Failed to send OTP",
+          description: error.response?.data?.detail || error.message || "Failed to send OTP",
         variant: "destructive"
       });
+      }
     } finally {
       setLoading(false);
     }
@@ -88,7 +145,8 @@ const CitizenLogin = () => {
     if (authMode === 'quick-otp') {
       // Quick login path - verify OTP and create minimal account
       try {
-        const response = await authService.verifyOTP(phone, otp);
+        const normalizedPhone = normalizePhoneNumber(phone);
+        const response = await authService.verifyOTP(normalizedPhone, otp);
         await login(response.access_token, response.refresh_token);
         toast({
           title: "Quick Login Successful!",
@@ -107,7 +165,8 @@ const CitizenLogin = () => {
     } else if (authMode === 'full-register') {
       // Full registration path - verify phone after signup
       try {
-        const response = await authService.verifyPhone(phone, otp);
+        const normalizedPhone = normalizePhoneNumber(phone);
+        const response = await authService.verifyPhone(normalizedPhone, otp);
         await login(response.access_token, response.refresh_token);
         toast({
           title: "Account Verified!",
@@ -136,6 +195,24 @@ const CitizenLogin = () => {
       return;
     }
 
+    if (phone.length !== 10) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit phone number",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (phone[0] === '0') {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Phone number cannot start with 0. Please enter a valid 10-digit number starting with 1-9.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (password.length < 8) {
       toast({
         title: "Weak Password",
@@ -147,8 +224,10 @@ const CitizenLogin = () => {
 
     setLoading(true);
     try {
+      // Normalize phone number before sending
+      const normalizedPhone = normalizePhoneNumber(phone);
       const response = await authService.signup({
-        phone,
+        phone: normalizedPhone,
         full_name: name,
         email: email || undefined,
         password
@@ -183,11 +262,20 @@ const CitizenLogin = () => {
         });
       }, 1000);
     } catch (error: any) {
+      // Handle normalization errors
+      if (error.message && error.message.includes('phone number')) {
+        toast({
+          title: "Invalid Phone Number",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
       toast({
         title: "Registration Failed",
-        description: error.response?.data?.detail || "Failed to create account",
+          description: error.response?.data?.detail || error.message || "Failed to create account",
         variant: "destructive"
       });
+      }
     } finally {
       setLoading(false);
     }
@@ -203,9 +291,20 @@ const CitizenLogin = () => {
       return;
     }
 
+    if (phone[0] === '0') {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Phone number cannot start with 0. Please enter a valid 10-digit number starting with 1-9.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await authService.login(phone, password);
+      // Normalize phone number before sending
+      const normalizedPhone = normalizePhoneNumber(phone);
+      const response = await authService.login(normalizedPhone, password);
       await login(response.access_token, response.refresh_token);
       toast({
         title: "Login Successful!",
@@ -213,11 +312,20 @@ const CitizenLogin = () => {
       });
       navigate('/citizen/dashboard');
     } catch (error: any) {
+      // Handle normalization errors
+      if (error.message && error.message.includes('phone number')) {
+        toast({
+          title: "Invalid Phone Number",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
       toast({
         title: "Login Failed",
-        description: error.response?.data?.detail || "Invalid credentials",
+          description: error.response?.data?.detail || error.message || "Invalid credentials",
         variant: "destructive"
       });
+      }
     } finally {
       setLoading(false);
     }

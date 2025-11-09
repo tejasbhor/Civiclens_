@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import { logger } from '@/lib/logger';
 
 export interface OfficerStats {
   user_id: number;
@@ -52,17 +53,19 @@ export const officerService = {
     skip?: number;
     limit?: number;
   }): Promise<any[]> {
-    // Get all reports and filter for those assigned to current officer
-    // The backend returns reports with task info included
+    // Use /reports/ endpoint which returns all reports with task info
+    // We'll filter on frontend for reports assigned to current officer
+    const limit = params?.limit || 100;
+    const page = 1;
+    
     const response = await apiClient.get('/reports/', { 
       params: {
-        page: 1,
-        per_page: params?.limit || 100,
-        // We'll filter on frontend for now since backend doesn't have dedicated endpoint
+        page,
+        per_page: limit,
       }
     });
     
-    console.log('📋 getMyTasks response:', response.data);
+    logger.debug('📋 getMyTasks response:', response.data);
     
     // Backend returns paginated response: {data: [...], total: ..., page: ..., per_page: ...}
     // Extract the actual reports array
@@ -71,28 +74,28 @@ export const officerService = {
     if (Array.isArray(response.data)) {
       // Direct array
       allReports = response.data;
-    } else if (response.data.data && Array.isArray(response.data.data)) {
+    } else if (response.data?.data && Array.isArray(response.data.data)) {
       // Paginated: {data: [...], total: ...}
       allReports = response.data.data;
-    } else if (response.data.items && Array.isArray(response.data.items)) {
+    } else if (response.data?.items && Array.isArray(response.data.items)) {
       // Alternative pagination: {items: [...], total: ...}
       allReports = response.data.items;
     } else {
-      console.error('❌ Unexpected response structure:', response.data);
+      logger.error('❌ Unexpected response structure:', response.data);
       return [];
     }
     
-    console.log('   Total reports in response:', allReports.length);
+    logger.debug(`   Total reports in response: ${allReports.length}`);
     
-    // Filter for reports assigned to current officer
+    // Filter for reports assigned to current officer via task
+    // We need to check this on the frontend since backend doesn't have officer-specific endpoint
     const myTasks = allReports.filter((report: any) => {
-      // Check if report has a task and if current user is assigned
       return report.task && report.task.assigned_to;
     });
     
-    console.log('   Tasks with assignment:', myTasks.length);
+    logger.debug(`   Tasks with assignment: ${myTasks.length}`);
     
-    return myTasks.slice(0, params?.limit || 20);
+    return myTasks;
   },
 
   /**
@@ -143,6 +146,82 @@ export const officerService = {
     notes?: string;
   }): Promise<any> {
     const response = await apiClient.put(`/reports/${reportId}`, data);
+    return response.data;
+  },
+
+  /**
+   * Submit work for verification
+   */
+  async submitForVerification(reportId: number, formData: FormData): Promise<any> {
+    const response = await apiClient.post(`/reports/${reportId}/submit-for-verification`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Reject assignment
+   */
+  async rejectAssignment(reportId: number, rejectionReason: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('rejection_reason', rejectionReason);
+    
+    const response = await apiClient.post(`/reports/${reportId}/reject-assignment`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Put task on hold
+   */
+  async putOnHold(reportId: number, reason: string, estimatedResumeDate?: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('reason', reason);
+    if (estimatedResumeDate) {
+      formData.append('estimated_resume_date', estimatedResumeDate);
+    }
+    
+    const response = await apiClient.post(`/reports/${reportId}/on-hold`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Resume work from on hold
+   */
+  async resumeWork(reportId: number, notes?: string): Promise<any> {
+    const formData = new FormData();
+    // Always append notes field (empty string if not provided) to avoid form parsing error
+    formData.append('notes', notes || '');
+    
+    const response = await apiClient.post(`/reports/${reportId}/resume-work`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  /**
+   * Add progress update to task
+   */
+  async addUpdate(reportId: number, updateText: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('update_text', updateText);
+    
+    const response = await apiClient.post(`/reports/${reportId}/add-update`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   }
 };

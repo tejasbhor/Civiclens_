@@ -17,6 +17,8 @@ from app.models.escalation import Escalation, EscalationLevel, EscalationReason,
 from app.models.report_status_history import ReportStatusHistory
 from app.models.sync import ClientSyncState, SyncConflict, OfflineAction
 from app.models.audit_log import AuditLog, AuditAction, AuditStatus
+from app.models.notification import Notification, NotificationType, NotificationPriority
+from app.models.feedback import Feedback
 
 __all__ = [
     "BaseModel",
@@ -48,4 +50,8 @@ __all__ = [
     "AuditLog",
     "AuditAction",
     "AuditStatus",
+    "Notification",
+    "NotificationType",
+    "NotificationPriority",
+    "Feedback",
 ]

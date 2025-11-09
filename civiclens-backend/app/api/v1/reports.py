@@ -196,14 +196,26 @@ async def create_report(
         report_dict = report_data.model_dump()
         report_dict['user_id'] = current_user.id
         
-        # Validate coordinates are within reasonable bounds for India
+        # Validate coordinates are within valid global bounds
         lat, lng = report_dict['latitude'], report_dict['longitude']
-        if not (6.0 <= lat <= 37.0 and 68.0 <= lng <= 97.0):
-            logger.warning(f"Invalid coordinates for India: {lat}, {lng}")
+        
+        # Basic coordinate validation (global bounds)
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            logger.warning(f"Invalid coordinates: {lat}, {lng}")
             raise ValidationException(
-                f"Coordinates ({lat:.6f}, {lng:.6f}) appear to be outside India. "
-                "Please verify your location or enter coordinates manually."
+                f"Invalid coordinates ({lat:.6f}, {lng:.6f}). "
+                "Latitude must be between -90 and 90, longitude between -180 and 180."
             )
+        
+        # Optional: Warn if coordinates seem unusual (but don't block)
+        # This can be configured per deployment region
+        # For India: 6.0 <= lat <= 37.0 and 68.0 <= lng <= 97.0
+        # For Mumbai: ~19.0760, ~72.8777 (within India bounds)
+        # For global deployment, this check can be disabled or made configurable
+        if hasattr(settings, 'ENABLE_REGION_VALIDATION') and settings.ENABLE_REGION_VALIDATION:
+            if not (6.0 <= lat <= 37.0 and 68.0 <= lng <= 97.0):
+                logger.info(f"Coordinates outside India region: {lat}, {lng} (report will still be created)")
+                # Don't raise exception - allow global reports
         
         # Validate title and description content
         title = report_dict['title'].strip()
@@ -336,6 +348,29 @@ async def create_report(
         # Commit all changes
         await db.commit()
         await db.refresh(report)
+        
+        # Invalidate map data cache (non-blocking)
+        try:
+            redis = await get_redis()
+            # Delete all map data cache keys (pattern: map_data:*)
+            keys = await redis.keys("map_data:*")
+            if keys:
+                await redis.delete(*keys)
+                logger.info(f"Invalidated {len(keys)} map data cache keys after report creation")
+        except Exception as e:
+            logger.warning(f"Failed to invalidate map cache: {e}")
+            # Don't fail the request if cache invalidation fails
+        
+        # Send notification to citizen that report was received
+        try:
+            from app.services.notification_service import NotificationService
+            notification_service = NotificationService(db)
+            await notification_service.notify_report_received(report)
+            await db.commit()
+            logger.info(f"Sent notification to citizen for report #{report.id}")
+        except Exception as e:
+            logger.error(f"Failed to send notification for report {report.id}: {str(e)}")
+            # Don't fail the request if notification fails
         
         # Prepare response payload
         payload = {
@@ -477,6 +512,122 @@ async def get_reports(
         per_page=per_page,
         total_pages=(total + per_page - 1) // per_page
     )
+
+
+@router.get("/map-data", response_model=dict)
+async def get_map_data(
+    status: Optional[ReportStatus] = None,
+    severity: Optional[ReportSeverity] = None,
+    category: Optional[str] = None,
+    department_id: Optional[int] = None,
+    limit: int = Query(1000, ge=1, le=5000, description="Maximum number of reports to return for map"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get optimized report data for map/heat map visualization
+    Returns only location data (lat, lng, severity, status, id) for performance
+    
+    Production Features:
+    - Optimized query (only fetches required fields)
+    - Redis caching (5 minutes)
+    - No relationship loading (faster queries)
+    - Rate limiting ready
+    - Efficient for heat map rendering
+    """
+    import hashlib
+    import json
+    from datetime import timedelta
+    
+    # Build cache key from filters
+    cache_key_parts = {
+        'status': status.value if status else None,
+        'severity': severity.value if severity else None,
+        'category': category,
+        'department_id': department_id,
+        'limit': limit
+    }
+    cache_key_str = json.dumps(cache_key_parts, sort_keys=True)
+    cache_key = f"map_data:{hashlib.md5(cache_key_str.encode()).hexdigest()}"
+    
+    # Try to get from cache
+    try:
+        redis = await get_redis()
+        cached_data = await redis.get(cache_key)
+        if cached_data:
+            logger.info(f"Map data cache hit for key: {cache_key}")
+            response = json.loads(cached_data)
+            response["cached"] = True
+            return response
+    except Exception as e:
+        logger.warning(f"Cache read error: {e}")
+    
+    # Build optimized query - only fetch required fields
+    query = select(
+        Report.id,
+        Report.latitude,
+        Report.longitude,
+        Report.severity,
+        Report.status,
+        Report.category,
+        Report.report_number,
+        Report.created_at
+    ).where(
+        Report.latitude.isnot(None),
+        Report.longitude.isnot(None)
+    )
+    
+    # Apply filters
+    if status:
+        query = query.where(Report.status == status)
+    if severity:
+        query = query.where(Report.severity == severity)
+    if category:
+        query = query.where(Report.category == category)
+    if department_id:
+        query = query.where(Report.department_id == department_id)
+    
+    # Order by most recent and limit
+    query = query.order_by(Report.created_at.desc()).limit(limit)
+    
+    # Execute query
+    result = await db.execute(query)
+    rows = result.all()
+    
+    # Serialize to minimal format for map
+    map_data = [
+        {
+            "id": row.id,
+            "lat": float(row.latitude),
+            "lng": float(row.longitude),
+            "severity": row.severity.value if hasattr(row.severity, 'value') else str(row.severity),
+            "status": row.status.value if hasattr(row.status, 'value') else str(row.status),
+            "category": row.category,
+            "report_number": row.report_number,
+            "created_at": row.created_at.isoformat() if row.created_at else None
+        }
+        for row in rows
+    ]
+    
+    response = {
+        "reports": map_data,
+        "count": len(map_data),
+        "cached": False
+    }
+    
+    # Cache the result for 5 minutes
+    try:
+        redis = await get_redis()
+        await redis.setex(
+            cache_key,
+            int(timedelta(minutes=5).total_seconds()),
+            json.dumps(response)
+        )
+        logger.info(f"Map data cached for key: {cache_key}")
+    except Exception as e:
+        logger.warning(f"Cache write error: {e}")
+    
+    return response
 
 
 @router.get("/my-reports", response_model=list[ReportResponse])
@@ -689,11 +840,14 @@ ALLOWED_TRANSITIONS = {
     ReportStatus.PENDING_CLASSIFICATION: {ReportStatus.CLASSIFIED, ReportStatus.ASSIGNED_TO_DEPARTMENT},
     ReportStatus.CLASSIFIED: {ReportStatus.ASSIGNED_TO_DEPARTMENT},
     ReportStatus.ASSIGNED_TO_DEPARTMENT: {ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.ON_HOLD},
-    ReportStatus.ASSIGNED_TO_OFFICER: {ReportStatus.ACKNOWLEDGED, ReportStatus.ON_HOLD},
+    ReportStatus.ASSIGNED_TO_OFFICER: {ReportStatus.ACKNOWLEDGED, ReportStatus.ASSIGNMENT_REJECTED, ReportStatus.ON_HOLD},
+    ReportStatus.ASSIGNMENT_REJECTED: {ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.CLASSIFIED, ReportStatus.REJECTED},
     ReportStatus.ACKNOWLEDGED: {ReportStatus.IN_PROGRESS, ReportStatus.ON_HOLD},
     ReportStatus.IN_PROGRESS: {ReportStatus.PENDING_VERIFICATION, ReportStatus.ON_HOLD},
-    ReportStatus.PENDING_VERIFICATION: {ReportStatus.RESOLVED, ReportStatus.REJECTED, ReportStatus.ON_HOLD},
+    ReportStatus.PENDING_VERIFICATION: {ReportStatus.RESOLVED, ReportStatus.REJECTED, ReportStatus.ON_HOLD, ReportStatus.IN_PROGRESS},
     ReportStatus.ON_HOLD: {ReportStatus.ASSIGNED_TO_DEPARTMENT, ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.IN_PROGRESS},
+    ReportStatus.RESOLVED: {ReportStatus.CLOSED, ReportStatus.REOPENED},
+    ReportStatus.REOPENED: {ReportStatus.IN_PROGRESS},
 }
 
 
@@ -954,6 +1108,7 @@ async def submit_for_verification(
 async def put_task_on_hold(
     report_id: int,
     reason: str = Form(..., description="Mandatory reason for putting task on hold"),
+    estimated_resume_date: Optional[str] = Form(None, description="Estimated resume date (YYYY-MM-DD)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     report_service: ReportService = Depends(get_report_service)
@@ -961,7 +1116,45 @@ async def put_task_on_hold(
     """
     Officer puts task on hold with mandatory reason
     Transitions: IN_PROGRESS → ON_HOLD
+    
+    Production Features:
+    - Input validation (reason length, date format)
+    - Authorization checks
+    - Status validation
+    - Audit trail logging
+    - Citizen notifications
+    - Comprehensive error handling
     """
+    logger.info(f"Officer {current_user.id} putting report {report_id} on hold")
+    
+    # Validate input
+    if not reason or len(reason.strip()) < 10:
+        raise ValidationException(
+            "Hold reason must be at least 10 characters long"
+        )
+    
+    if len(reason) > 1000:
+        raise ValidationException(
+            "Hold reason cannot exceed 1000 characters"
+        )
+    
+    reason = reason.strip()
+    
+    # Validate and parse estimated resume date if provided
+    parsed_date = None
+    if estimated_resume_date:
+        try:
+            from datetime import datetime as dt
+            parsed_date = dt.fromisoformat(estimated_resume_date.replace('Z', '+00:00'))
+            if parsed_date.date() < dt.utcnow().date():
+                raise ValidationException(
+                    "Estimated resume date cannot be in the past"
+                )
+        except ValueError:
+            raise ValidationException(
+                "Invalid date format. Use YYYY-MM-DD"
+            )
+    
     report = await report_crud.get(db, report_id)
     
     if not report:
@@ -989,10 +1182,142 @@ async def put_task_on_hold(
     
     # Update task
     task.status = TaskStatus.ON_HOLD
+    task.hold_reason = reason
+    if parsed_date:
+        task.estimated_resume_date = parsed_date
     task.notes = f"{task.notes}\n[ON HOLD] {reason}" if task.notes else f"[ON HOLD] {reason}"
     
     await db.commit()
     await db.refresh(updated)
+    
+    # Send notification to citizen
+    try:
+        from app.services.notification_service import NotificationService
+        notification_service = NotificationService(db)
+        await notification_service.create_notification(
+            user_id=report.user_id,
+            type="on_hold",
+            title=f"Report #{report.report_number} On Hold",
+            message=f"Your report has been temporarily put on hold: {reason}",
+            priority="normal",
+            related_report_id=report.id,
+            action_url=f"/reports/{report.id}"
+        )
+        await db.commit()
+        logger.info(
+            f"Task put on hold successfully: report_id={report_id}, "
+            f"officer_id={current_user.id}, citizen notified"
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to send hold notification for report {report_id}: {str(e)}",
+            exc_info=True
+        )
+    
+    return updated
+
+
+@router.post("/{report_id}/resume-work", response_model=ReportResponse)
+async def resume_work_from_hold(
+    report_id: int,
+    notes: str = Form(None, description="Optional notes about resuming work"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    report_service: ReportService = Depends(get_report_service)
+):
+    """
+    Officer resumes work from ON_HOLD status
+    Transitions: ON_HOLD → IN_PROGRESS
+    
+    Production Features:
+    - Authorization checks
+    - Status validation
+    - Audit trail logging
+    - Citizen & admin notifications
+    - Comprehensive error handling
+    """
+    logger.info(f"Officer {current_user.id} resuming work on report {report_id}")
+    
+    # Validate notes if provided
+    if notes and len(notes) > 1000:
+        raise ValidationException(
+            "Notes cannot exceed 1000 characters"
+        )
+    
+    if notes:
+        notes = notes.strip()
+    
+    report = await report_crud.get(db, report_id)
+    
+    if not report:
+        raise NotFoundException("Report not found")
+    
+    # Verify officer is assigned to this report
+    from app.crud.task import task_crud
+    task = await task_crud.get_by_report(db, report_id)
+    
+    if not task or task.assigned_to != current_user.id:
+        raise ForbiddenException("Not authorized to update this task")
+    
+    # Only allow if currently ON_HOLD
+    if report.status != ReportStatus.ON_HOLD:
+        raise ValidationException(f"Cannot resume work from status: {report.status}")
+    
+    # Update report status
+    status_notes = notes or "Work resumed"
+    updated = await report_service.update_status(
+        report_id=report_id,
+        new_status=ReportStatus.IN_PROGRESS,
+        user_id=current_user.id,
+        notes=f"Work resumed: {status_notes}",
+        skip_validation=False
+    )
+    
+    # Update task
+    task.status = TaskStatus.IN_PROGRESS
+    if notes:
+        task.notes = f"{task.notes}\n[RESUMED] {notes}" if task.notes else f"[RESUMED] {notes}"
+    
+    # Clear hold-related fields
+    task.hold_reason = None
+    task.estimated_resume_date = None
+    
+    await db.commit()
+    await db.refresh(updated)
+    
+    # Send notifications
+    try:
+        from app.services.notification_service import NotificationService
+        notification_service = NotificationService(db)
+        
+        # Notify citizen
+        await notification_service.create_notification(
+            user_id=report.user_id,
+            type="work_resumed",
+            title=f"Work Resumed on Report #{report.report_number}",
+            message=f"The officer has resumed work on your report",
+            priority="normal",
+            related_report_id=report.id,
+            action_url=f"/reports/{report.id}"
+        )
+        
+        # Notify admins
+        admin_ids = await notification_service.get_admin_user_ids()
+        for admin_id in admin_ids:
+            await notification_service.create_notification(
+                user_id=admin_id,
+                type="work_resumed",
+                title=f"Work Resumed: Report #{report.report_number}",
+                message=f"Officer has resumed work on report",
+                priority="normal",
+                related_report_id=report.id,
+                related_task_id=task.id,
+                action_url=f"/admin/reports/{report.id}"
+            )
+        
+        await db.commit()
+    except Exception as e:
+        logger.error(f"Failed to send resume work notifications: {str(e)}")
     
     return updated
 
@@ -1127,6 +1452,282 @@ async def add_task_update(
     await db.refresh(report)
     
     return report
+
+
+@router.post("/{report_id}/reject-assignment", response_model=ReportResponse)
+async def reject_assignment(
+    report_id: int,
+    rejection_reason: str = Form(..., description="Mandatory reason for rejecting assignment"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    report_service: ReportService = Depends(get_report_service)
+):
+    """
+    Officer rejects incorrect assignment
+    Transitions: ASSIGNED_TO_OFFICER → ASSIGNMENT_REJECTED
+    
+    Production Features:
+    - Input validation (reason length)
+    - Authorization checks
+    - Status validation
+    - Audit trail logging
+    - Admin notifications
+    - Comprehensive error handling
+    """
+    logger.info(f"Officer {current_user.id} rejecting assignment for report {report_id}")
+    
+    # Validate input
+    if not rejection_reason or len(rejection_reason.strip()) < 10:
+        raise ValidationException(
+            "Rejection reason must be at least 10 characters long"
+        )
+    
+    if len(rejection_reason) > 1000:
+        raise ValidationException(
+            "Rejection reason cannot exceed 1000 characters"
+        )
+    
+    rejection_reason = rejection_reason.strip()
+    
+    report = await report_crud.get(db, report_id)
+    
+    if not report:
+        raise NotFoundException("Report not found")
+    
+    # Verify officer is assigned to this report
+    from app.crud.task import task_crud
+    task = await task_crud.get_by_report(db, report_id)
+    
+    if not task or task.assigned_to != current_user.id:
+        raise ForbiddenException("Not authorized to reject this assignment")
+    
+    # Only allow if currently ASSIGNED_TO_OFFICER
+    if report.status != ReportStatus.ASSIGNED_TO_OFFICER:
+        raise ValidationException(
+            f"Cannot reject assignment from status: {report.status}"
+        )
+    
+    # Update report status
+    updated = await report_service.update_status(
+        report_id=report_id,
+        new_status=ReportStatus.ASSIGNMENT_REJECTED,
+        user_id=current_user.id,
+        notes=f"Officer rejected assignment: {rejection_reason}",
+        skip_validation=False
+    )
+    
+    # Update report rejection fields
+    updated.assignment_rejection_reason = rejection_reason
+    updated.assignment_rejected_at = datetime.utcnow()
+    updated.assignment_rejected_by_user_id = current_user.id
+    
+    # Update task
+    task.rejection_reason = rejection_reason
+    task.rejected_at = datetime.utcnow()
+    
+    await db.commit()
+    await db.refresh(updated)
+    
+    # Send notifications to admins
+    try:
+        from app.services.notification_service import NotificationService
+        notification_service = NotificationService(db)
+        admin_ids = await notification_service.get_admin_user_ids()
+        await notification_service.notify_assignment_rejected(
+            report=updated,
+            task=task,
+            rejection_reason=rejection_reason,
+            admin_user_ids=admin_ids
+        )
+        await db.commit()
+        logger.info(
+            f"Assignment rejection successful: report_id={report_id}, "
+            f"officer_id={current_user.id}, notified {len(admin_ids)} admins"
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to send rejection notifications for report {report_id}: {str(e)}",
+            exc_info=True
+        )
+        # Don't fail the request if notifications fail
+    
+    return updated
+
+
+@router.post("/{report_id}/review-rejection", response_model=ReportResponse)
+async def review_assignment_rejection(
+    report_id: int,
+    action: str = Form(..., description="Action: reassign, reclassify, or reject_report"),
+    new_officer_id: Optional[int] = Form(None, description="New officer ID if reassigning"),
+    new_category: Optional[str] = Form(None, description="New category if reclassifying"),
+    new_severity: Optional[str] = Form(None, description="New severity if reclassifying"),
+    new_department_id: Optional[int] = Form(None, description="New department ID if reclassifying"),
+    notes: Optional[str] = Form(None, description="Admin notes"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    report_service: ReportService = Depends(get_report_service)
+):
+    """
+    Admin reviews officer's assignment rejection
+    Actions:
+    - reassign: Reassign to different officer in same department
+    - reclassify: Change category, severity, and/or department, then route again
+    - reject_report: Mark report as invalid/spam
+    
+    Production Features:
+    - Complete reclassification support (category, severity, department)
+    - Automatic routing after reclassification
+    - Proper status transitions
+    - Audit trail
+    - Validation of required fields
+    """
+    # Check admin permission
+    if not current_user.can_access_admin_portal():
+        raise ForbiddenException("Admin access required")
+    
+    report = await report_crud.get(db, report_id)
+    if not report:
+        raise NotFoundException("Report not found")
+    
+    # Only allow if currently ASSIGNMENT_REJECTED
+    if report.status != ReportStatus.ASSIGNMENT_REJECTED:
+        raise ValidationException(
+            f"Cannot review rejection from status: {report.status}. Must be ASSIGNMENT_REJECTED."
+        )
+    
+    try:
+        if action == "reassign":
+            if not new_officer_id:
+                raise ValidationException("new_officer_id required for reassign action")
+            
+            # Validate officer exists and is in same department
+            officer = await user_crud.get(db, new_officer_id)
+            if not officer:
+                raise ValidationException("Selected officer not found")
+            
+            if officer.department_id != report.department_id:
+                raise ValidationException(
+                    f"Officer must be in the same department (expected: {report.department_id}, got: {officer.department_id})"
+                )
+            
+            # Reassign to different officer
+            await report_service.assign_officer(
+                report_id=report_id,
+                officer_id=new_officer_id,
+                assigned_by_id=current_user.id,
+                notes=notes or f"Reassigned after rejection by officer. Original reason: {report.assignment_rejection_reason}",
+                auto_update_status=True
+            )
+            
+            logger.info(
+                f"Report {report_id} reassigned to officer {new_officer_id} "
+                f"after assignment rejection review by admin {current_user.id}"
+            )
+            
+        elif action == "reclassify":
+            if not new_category:
+                raise ValidationException("new_category required for reclassify action")
+            if not new_severity:
+                raise ValidationException("new_severity required for reclassify action")
+            
+            # Build reclassification details
+            reclass_notes = f"Reclassified after assignment rejection review.\n"
+            reclass_notes += f"Original officer feedback: {report.assignment_rejection_reason}\n"
+            reclass_notes += f"Changes: "
+            changes = []
+            
+            # Update category if changed
+            if new_category != report.category:
+                changes.append(f"category {report.category} → {new_category}")
+                report.category = new_category
+            
+            # Update severity if changed
+            if new_severity != report.severity:
+                changes.append(f"severity {report.severity} → {new_severity}")
+                report.severity = new_severity
+            
+            # Update department if changed
+            if new_department_id and new_department_id != report.department_id:
+                old_dept = await db.get(Department, report.department_id) if report.department_id else None
+                new_dept = await db.get(Department, new_department_id)
+                if not new_dept:
+                    raise ValidationException("Selected department not found")
+                
+                changes.append(
+                    f"department {old_dept.name if old_dept else 'None'} → {new_dept.name}"
+                )
+                report.department_id = new_department_id
+                report.assigned_department_at = datetime.utcnow()
+            
+            reclass_notes += ", ".join(changes)
+            if notes:
+                reclass_notes += f"\nAdmin notes: {notes}"
+            
+            # Update classification metadata
+            report.classified_by_user_id = current_user.id
+            report.classified_at = datetime.utcnow()
+            
+            # Move back to CLASSIFIED status for re-routing
+            await report_service.update_status(
+                report_id=report_id,
+                new_status=ReportStatus.CLASSIFIED,
+                user_id=current_user.id,
+                notes=reclass_notes,
+                skip_validation=True
+            )
+            
+            logger.info(
+                f"Report {report_id} reclassified after assignment rejection. "
+                f"Changes: {', '.join(changes)}"
+            )
+            
+        elif action == "reject_report":
+            # Mark report as invalid/spam
+            rejection_notes = notes or "Report marked as invalid/spam after officer's feedback"
+            rejection_notes += f"\nOfficer's rejection reason: {report.assignment_rejection_reason}"
+            
+            await report_service.update_status(
+                report_id=report_id,
+                new_status=ReportStatus.REJECTED,
+                user_id=current_user.id,
+                notes=rejection_notes,
+                skip_validation=True
+            )
+            
+            logger.info(
+                f"Report {report_id} rejected by admin {current_user.id} "
+                f"after assignment rejection review"
+            )
+            
+        else:
+            raise ValidationException(
+                "Invalid action. Must be: reassign, reclassify, or reject_report"
+            )
+        
+        # Clear rejection fields
+        report.assignment_rejection_reason = None
+        report.assignment_rejected_at = None
+        report.assignment_rejected_by_user_id = None
+        
+        await db.commit()
+        await db.refresh(report)
+        
+        logger.info(
+            f"Assignment rejection review completed for report {report_id}. "
+            f"Action: {action}, Admin: {current_user.id}"
+        )
+        
+        return report
+        
+    except ValidationException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error reviewing assignment rejection for report {report_id}: {str(e)}",
+            exc_info=True
+        )
+        await db.rollback()
+        raise ValidationException(f"Failed to review assignment rejection: {str(e)}")
 
 
 @router.get("/{report_id}/history", response_model=StatusHistoryResponse)

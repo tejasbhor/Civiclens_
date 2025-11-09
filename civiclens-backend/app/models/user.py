@@ -124,6 +124,7 @@ class User(BaseModel):
     department = relationship("Department", back_populates="officers")
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
     sync_states = relationship("ClientSyncState", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, phone={self.phone}, role={self.role})>"

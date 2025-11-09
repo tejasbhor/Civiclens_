@@ -61,7 +61,7 @@ OFFICERS = [
     {
         "employee_id": "PWD-001",
         "full_name": "Rajesh Kumar Singh",
-        "phone": "+91-9876543210",
+        "phone": "+919876543210",
         "email": "rajesh.kumar@ranchi.gov.in",
         "department_name": "Public Works Department",
         "role": "nodal_officer",
@@ -70,7 +70,7 @@ OFFICERS = [
     {
         "employee_id": "PWD-002",
         "full_name": "Amit Sharma",
-        "phone": "+91-9876543211",
+        "phone": "+919876543211",
         "email": "amit.sharma@ranchi.gov.in",
         "department_name": "Public Works Department",
         "role": "nodal_officer",
@@ -79,7 +79,7 @@ OFFICERS = [
     {
         "employee_id": "PWD-003",
         "full_name": "Suresh Prasad",
-        "phone": "+91-9876543212",
+        "phone": "+919876543212",
         "email": "suresh.prasad@ranchi.gov.in",
         "department_name": "Public Works Department",
         "role": "nodal_officer",
@@ -88,7 +88,7 @@ OFFICERS = [
     {
         "employee_id": "PWD-004",
         "full_name": "Deepak Kumar",
-        "phone": "+91-9876543213",
+        "phone": "+919876543213",
         "email": "deepak.kumar@ranchi.gov.in",
         "department_name": "Public Works Department",
         "role": "nodal_officer",
@@ -97,7 +97,7 @@ OFFICERS = [
     {
         "employee_id": "PWD-005",
         "full_name": "Vikash Singh",
-        "phone": "+91-9876543214",
+        "phone": "+919876543214",
         "email": "vikash.singh@ranchi.gov.in",
         "department_name": "Public Works Department",
         "role": "nodal_officer",
@@ -108,7 +108,7 @@ OFFICERS = [
     {
         "employee_id": "WSD-001",
         "full_name": "Priya Singh",
-        "phone": "+91-9876543215",
+        "phone": "+919876543215",
         "email": "priya.singh@ranchi.gov.in",
         "department_name": "Water Supply Department",
         "role": "nodal_officer",
@@ -117,7 +117,7 @@ OFFICERS = [
     {
         "employee_id": "WSD-002",
         "full_name": "Anil Kumar Verma",
-        "phone": "+91-9876543216",
+        "phone": "+919876543216",
         "email": "anil.verma@ranchi.gov.in",
         "department_name": "Water Supply Department",
         "role": "nodal_officer",
@@ -126,7 +126,7 @@ OFFICERS = [
     {
         "employee_id": "WSD-003",
         "full_name": "Santosh Kumar",
-        "phone": "+91-9876543217",
+        "phone": "+919876543217",
         "email": "santosh.kumar@ranchi.gov.in",
         "department_name": "Water Supply Department",
         "role": "nodal_officer",
@@ -135,7 +135,7 @@ OFFICERS = [
     {
         "employee_id": "WSD-004",
         "full_name": "Ravi Shankar",
-        "phone": "+91-9876543218",
+        "phone": "+919876543218",
         "email": "ravi.shankar@ranchi.gov.in",
         "department_name": "Water Supply Department",
         "role": "nodal_officer",
@@ -146,7 +146,7 @@ OFFICERS = [
     {
         "employee_id": "SD-001",
         "full_name": "Ram Kumar Yadav",
-        "phone": "+91-9876543219",
+        "phone": "+919876543219",
         "email": "ram.kumar@ranchi.gov.in",
         "department_name": "Sanitation Department",
         "role": "nodal_officer",
@@ -155,7 +155,7 @@ OFFICERS = [
     {
         "employee_id": "SD-002",
         "full_name": "Sunita Devi",
-        "phone": "+91-9876543220",
+        "phone": "+919876543220",
         "email": "sunita.devi@ranchi.gov.in",
         "department_name": "Sanitation Department",
         "role": "nodal_officer",
@@ -164,7 +164,7 @@ OFFICERS = [
     {
         "employee_id": "SD-003",
         "full_name": "Manoj Kumar",
-        "phone": "+91-9876543221",
+        "phone": "+919876543221",
         "email": "manoj.kumar@ranchi.gov.in",
         "department_name": "Sanitation Department",
         "role": "nodal_officer",
@@ -173,7 +173,7 @@ OFFICERS = [
     {
         "employee_id": "SD-004",
         "full_name": "Pankaj Singh",
-        "phone": "+91-9876543222",
+        "phone": "+919876543222",
         "email": "pankaj.singh@ranchi.gov.in",
         "department_name": "Sanitation Department",
         "role": "nodal_officer",
@@ -182,7 +182,7 @@ OFFICERS = [
     {
         "employee_id": "SD-005",
         "full_name": "Anita Kumari",
-        "phone": "+91-9876543223",
+        "phone": "+919876543223",
         "email": "anita.kumari@ranchi.gov.in",
         "department_name": "Sanitation Department",
         "role": "nodal_officer",
@@ -193,7 +193,7 @@ OFFICERS = [
     {
         "employee_id": "ED-001",
         "full_name": "Rakesh Kumar",
-        "phone": "+91-9876543224",
+        "phone": "+919876543224",
         "email": "rakesh.kumar@ranchi.gov.in",
         "department_name": "Electrical Department",
         "role": "nodal_officer",
@@ -202,7 +202,7 @@ OFFICERS = [
     {
         "employee_id": "ED-002",
         "full_name": "Sanjay Prasad",
-        "phone": "+91-9876543225",
+        "phone": "+919876543225",
         "email": "sanjay.prasad@ranchi.gov.in",
         "department_name": "Electrical Department",
         "role": "nodal_officer",
@@ -211,7 +211,7 @@ OFFICERS = [
     {
         "employee_id": "ED-003",
         "full_name": "Dinesh Kumar",
-        "phone": "+91-9876543226",
+        "phone": "+919876543226",
         "email": "dinesh.kumar@ranchi.gov.in",
         "department_name": "Electrical Department",
         "role": "nodal_officer",
@@ -222,7 +222,7 @@ OFFICERS = [
     {
         "employee_id": "HD-001",
         "full_name": "Ramesh Chandra",
-        "phone": "+91-9876543227",
+        "phone": "+919876543227",
         "email": "ramesh.chandra@ranchi.gov.in",
         "department_name": "Horticulture Department",
         "role": "nodal_officer",
@@ -231,7 +231,7 @@ OFFICERS = [
     {
         "employee_id": "HD-002",
         "full_name": "Kavita Sharma",
-        "phone": "+91-9876543228",
+        "phone": "+919876543228",
         "email": "kavita.sharma@ranchi.gov.in",
         "department_name": "Horticulture Department",
         "role": "nodal_officer",
@@ -240,7 +240,7 @@ OFFICERS = [
     {
         "employee_id": "HD-003",
         "full_name": "Ashok Kumar",
-        "phone": "+91-9876543229",
+        "phone": "+919876543229",
         "email": "ashok.kumar@ranchi.gov.in",
         "department_name": "Horticulture Department",
         "role": "nodal_officer",
@@ -251,7 +251,7 @@ OFFICERS = [
     {
         "employee_id": "HMD-001",
         "full_name": "Dr. Priya Verma",
-        "phone": "+91-9876543230",
+        "phone": "+919876543230",
         "email": "priya.verma@ranchi.gov.in",
         "department_name": "Health & Medical Department",
         "role": "nodal_officer",
@@ -260,7 +260,7 @@ OFFICERS = [
     {
         "employee_id": "HMD-002",
         "full_name": "Dr. Rajesh Gupta",
-        "phone": "+91-9876543231",
+        "phone": "+919876543231",
         "email": "rajesh.gupta@ranchi.gov.in",
         "department_name": "Health & Medical Department",
         "role": "nodal_officer",
@@ -269,7 +269,7 @@ OFFICERS = [
     {
         "employee_id": "HMD-003",
         "full_name": "Nurse Sunita Singh",
-        "phone": "+91-9876543232",
+        "phone": "+919876543232",
         "email": "sunita.singh@ranchi.gov.in",
         "department_name": "Health & Medical Department",
         "role": "nodal_officer",
@@ -278,7 +278,7 @@ OFFICERS = [
     {
         "employee_id": "HMD-004",
         "full_name": "Dr. Amit Sinha",
-        "phone": "+91-9876543233",
+        "phone": "+919876543233",
         "email": "amit.sinha@ranchi.gov.in",
         "department_name": "Health & Medical Department",
         "role": "nodal_officer",

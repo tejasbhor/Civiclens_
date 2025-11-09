@@ -29,6 +29,15 @@ class Task(BaseModel):
     notes = Column(Text, nullable=True)
     resolution_notes = Column(Text, nullable=True)
     
+    # SLA Tracking
+    sla_deadline = Column(DateTime(timezone=True), nullable=True)
+    sla_violated = Column(Integer, default=0, nullable=False)  # 0=compliant, 1=warning, 2=violated
+    sla_violation_count = Column(Integer, default=0, nullable=False)
+    
+    # Rejection Tracking
+    rejection_reason = Column(Text, nullable=True)
+    rejected_at = Column(DateTime(timezone=True), nullable=True)
+    
     # Timestamps
     assigned_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     acknowledged_at = Column(DateTime(timezone=True), nullable=True)

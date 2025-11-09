@@ -9,15 +9,42 @@ from app.core.security import get_password_hash, get_password_hash_direct, verif
 from app.core.enhanced_security import validate_password_strength
 from app.core.exceptions import ValidationException
 from datetime import datetime
+import re
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """CRUD operations for User model"""
 
     async def get_by_phone(self, db: AsyncSession, phone: str) -> Optional[User]:
-        """Get user by phone number"""
-        result = await db.execute(select(User).where(User.phone == phone))
-        return result.scalar_one_or_none()
+        """Get user by phone number (handles multiple formats)"""
+        # Normalize phone number for search
+        # Remove all non-digit characters except +
+        normalized = phone.strip()
+        
+        # Try exact match first
+        result = await db.execute(select(User).where(User.phone == normalized))
+        user = result.scalar_one_or_none()
+        if user:
+            return user
+        
+        # If phone starts with +91, try without it
+        if normalized.startswith('+91') and len(normalized) == 13:
+            without_prefix = normalized[3:]  # Remove +91
+            result = await db.execute(select(User).where(User.phone == without_prefix))
+            user = result.scalar_one_or_none()
+            if user:
+                return user
+        
+        # If phone is 10 digits, try with +91 prefix
+        digits_only = re.sub(r'\D', '', normalized)
+        if len(digits_only) == 10 and digits_only[0] != '0':
+            with_prefix = f"+91{digits_only}"
+            result = await db.execute(select(User).where(User.phone == with_prefix))
+            user = result.scalar_one_or_none()
+            if user:
+                return user
+        
+        return None
 
     async def get_by_email(self, db: AsyncSession, email: str) -> Optional[User]:
         """Get user by email"""

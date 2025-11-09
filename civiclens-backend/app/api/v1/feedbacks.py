@@ -136,6 +136,24 @@ async def submit_feedback(
         resource_id=str(feedback.id)
     )
     
+    # Send notifications
+    try:
+        from app.services.notification_service import NotificationService
+        from app.crud.task import task_crud
+        notification_service = NotificationService(db)
+        task = await task_crud.get_by_report(db, feedback_data.report_id)
+        if task:
+            await notification_service.notify_feedback_received(
+                report=report,
+                task=task,
+                rating=feedback_data.rating,
+                satisfaction_level=feedback_data.satisfaction_level.value
+            )
+            await db.commit()
+    except Exception as e:
+        logger.error(f"Failed to send feedback notifications: {str(e)}")
+        # Don't fail the request if notifications fail
+    
     return feedback
 
 

@@ -139,20 +139,28 @@ print(f"📁 Static media files mounted: /media -> {os.path.abspath(media_direct
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle Pydantic validation errors with detailed logging"""
     print(f"\n❌ Validation Error on {request.method} {request.url.path}")
-    print(f"📋 Request body: {await request.body()}")
+    
+    # Safely get body without FormData issues
+    try:
+        body = await request.body()
+        body_str = body.decode('utf-8') if body else "Empty body"
+        print(f"📋 Request body: {body_str[:500]}...")  # Limit output
+    except Exception as e:
+        print(f"📋 Request body: Unable to decode - {type(e).__name__}")
+    
     print(f"🔍 Validation errors:")
     for error in exc.errors():
         print(f"   - Field: {error['loc']}")
         print(f"     Error: {error['msg']}")
         print(f"     Type: {error['type']}")
-        if 'input' in error:
-            print(f"     Input: {error['input']}")
+        # Don't print input as it may contain non-serializable objects
     
+    # Return only serializable error details
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "detail": exc.errors(),
-            "body": exc.body
+            # Don't include body as it may contain FormData or other non-serializable objects
         }
     )
 
@@ -200,6 +208,10 @@ app.include_router(tasks_router, prefix="/api/v1")
 # Import and include AI insights router
 from app.api.v1.ai_insights import router as ai_insights_router
 app.include_router(ai_insights_router, prefix="/api/v1")
+
+# Import and include notifications router
+from app.api.v1.notifications import router as notifications_router
+app.include_router(notifications_router, prefix="/api/v1")
 
 
 @app.get("/")

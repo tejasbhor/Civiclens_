@@ -18,13 +18,45 @@ export interface Report {
   district?: string;
   state?: string;
   pincode?: string;
-  citizen_id: number;
+  user_id: number;
+  citizen_id?: number; // Legacy field
   department_id?: number;
   officer_id?: number;
   created_at: string;
   updated_at: string;
   status_updated_at?: string;
   media?: MediaFile[];
+  // Enhanced fields from backend
+  user?: {
+    id: number;
+    full_name?: string;
+    phone?: string;
+    role?: string;
+  };
+  department?: {
+    id: number;
+    name?: string;
+  };
+  task?: {
+    id: number;
+    status?: string;
+    assigned_to?: number;
+    assigned_by?: number;
+    priority?: number;
+    notes?: string;
+    assigned_at?: string;
+    acknowledged_at?: string;
+    started_at?: string;
+    resolved_at?: string;
+    officer?: {
+      id: number;
+      full_name?: string;
+      email?: string;
+      phone?: string;
+      employee_id?: string;
+      role?: string;
+    };
+  };
 }
 
 export interface MediaFile {

@@ -32,10 +32,11 @@ class ReportStateValidator:
         ReportStatus.PENDING_CLASSIFICATION: {ReportStatus.CLASSIFIED, ReportStatus.ASSIGNED_TO_DEPARTMENT},
         ReportStatus.CLASSIFIED: {ReportStatus.ASSIGNED_TO_DEPARTMENT},
         ReportStatus.ASSIGNED_TO_DEPARTMENT: {ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.ON_HOLD},
-        ReportStatus.ASSIGNED_TO_OFFICER: {ReportStatus.ACKNOWLEDGED, ReportStatus.ON_HOLD},
+        ReportStatus.ASSIGNED_TO_OFFICER: {ReportStatus.ACKNOWLEDGED, ReportStatus.ASSIGNMENT_REJECTED, ReportStatus.ON_HOLD},
+        ReportStatus.ASSIGNMENT_REJECTED: {ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.CLASSIFIED, ReportStatus.REJECTED},  # Admin can reassign, reclassify, or reject
         ReportStatus.ACKNOWLEDGED: {ReportStatus.IN_PROGRESS, ReportStatus.ON_HOLD},
         ReportStatus.IN_PROGRESS: {ReportStatus.PENDING_VERIFICATION, ReportStatus.ON_HOLD},
-        ReportStatus.PENDING_VERIFICATION: {ReportStatus.RESOLVED, ReportStatus.REJECTED, ReportStatus.ON_HOLD},
+        ReportStatus.PENDING_VERIFICATION: {ReportStatus.RESOLVED, ReportStatus.IN_PROGRESS, ReportStatus.ON_HOLD},  # Admin can reject back to IN_PROGRESS
         ReportStatus.ON_HOLD: {ReportStatus.ASSIGNED_TO_DEPARTMENT, ReportStatus.ASSIGNED_TO_OFFICER, ReportStatus.IN_PROGRESS},
         ReportStatus.RESOLVED: {ReportStatus.CLOSED, ReportStatus.REOPENED},  # Allow reopening after appeal
         ReportStatus.CLOSED: {ReportStatus.REOPENED},  # Allow reopening closed reports via appeal
@@ -376,6 +377,17 @@ class ReportService:
         await self.db.commit()
         await self.db.refresh(report)
         
+        # Send notifications
+        try:
+            from app.services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
+            admin_ids = await notification_service.get_admin_user_ids()
+            await notification_service.notify_report_classified(report, admin_ids)
+            await self.db.commit()
+        except Exception as e:
+            logger.error(f"Failed to send classification notifications: {str(e)}")
+            # Don't fail the operation if notifications fail
+        
         return report
     
     def _calculate_priority(self, severity: ReportSeverity, created_at: datetime) -> int:
@@ -454,6 +466,29 @@ class ReportService:
         
         await self.db.commit()
         await self.db.refresh(updated_report)
+        
+        # Send notifications
+        try:
+            from app.services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
+            admin_ids = await notification_service.get_admin_user_ids()
+            
+            # Get department name
+            dept_result = await self.db.execute(
+                select(Department.name).where(Department.id == department_id)
+            )
+            dept_name = dept_result.scalar() or "Department"
+            
+            await notification_service.notify_department_assigned(
+                report=updated_report,
+                department_name=dept_name,
+                admin_user_ids=admin_ids
+            )
+            await self.db.commit()
+        except Exception as e:
+            logger.error(f"Failed to send department assignment notifications: {str(e)}")
+            # Don't fail the operation if notifications fail
+        
         return updated_report
     
     async def assign_officer(
@@ -561,6 +596,25 @@ class ReportService:
         
         await self.db.commit()
         await self.db.refresh(updated_report)
+        
+        # Send notifications
+        try:
+            from app.services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
+            
+            # Get task and report with relationships
+            task = await task_crud.get_by_report(self.db, report_id)
+            if task:
+                await notification_service.notify_task_assigned(
+                    task=task,
+                    report=updated_report,
+                    assigned_by_user_id=assigned_by_id
+                )
+                await self.db.commit()
+        except Exception as e:
+            logger.error(f"Failed to send officer assignment notifications: {str(e)}")
+            # Don't fail the operation if notifications fail
+        
         return updated_report
     
     async def update_status(
@@ -608,6 +662,77 @@ class ReportService:
         
         await self.db.commit()
         await self.db.refresh(updated_report)
+        
+        # Send notifications for status changes
+        try:
+            from app.services.notification_service import NotificationService
+            notification_service = NotificationService(self.db)
+            
+            # Get task if exists
+            task = await task_crud.get_by_report(self.db, report_id)
+            
+            # Notify based on status change
+            if new_status == ReportStatus.RECEIVED and old_status != ReportStatus.RECEIVED:
+                await notification_service.notify_report_received(updated_report)
+            elif new_status == ReportStatus.REJECTED:
+                await notification_service.notify_report_rejected(updated_report, notes)
+            elif new_status == ReportStatus.PENDING_VERIFICATION:
+                if task:
+                    admin_ids = await notification_service.get_admin_user_ids()
+                    await notification_service.notify_verification_required(
+                        task=task,
+                        report=updated_report,
+                        admin_user_ids=admin_ids
+                    )
+            elif new_status == ReportStatus.RESOLVED:
+                await notification_service.notify_resolution_approved(
+                    report=updated_report,
+                    approved_by_user_id=user_id
+                )
+            elif new_status == ReportStatus.ACKNOWLEDGED:
+                if task:
+                    await notification_service.notify_task_acknowledged(
+                        task=task,
+                        report=updated_report
+                    )
+            elif new_status == ReportStatus.IN_PROGRESS:
+                if task:
+                    await notification_service.notify_work_started(
+                        task=task,
+                        report=updated_report
+                    )
+            elif new_status == ReportStatus.ON_HOLD:
+                if task:
+                    admin_ids = await notification_service.get_admin_user_ids()
+                    hold_reason = task.hold_reason or "Work temporarily paused"
+                    await notification_service.notify_on_hold(
+                        report=updated_report,
+                        task=task,
+                        hold_reason=hold_reason,
+                        admin_user_ids=admin_ids
+                    )
+            elif new_status == ReportStatus.IN_PROGRESS and old_status == ReportStatus.ON_HOLD:
+                if task:
+                    admin_ids = await notification_service.get_admin_user_ids()
+                    await notification_service.notify_work_resumed(
+                        report=updated_report,
+                        task=task,
+                        admin_user_ids=admin_ids
+                    )
+            else:
+                # Generic status change notification
+                await notification_service.notify_status_change(
+                    report=updated_report,
+                    old_status=old_status,
+                    new_status=new_status,
+                    changed_by_user_id=user_id
+                )
+            
+            await self.db.commit()
+        except Exception as e:
+            logger.error(f"Failed to send status change notifications: {str(e)}")
+            # Don't fail the operation if notifications fail
+        
         return updated_report
     
     async def update_severity(

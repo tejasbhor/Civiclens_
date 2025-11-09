@@ -121,6 +121,21 @@ async def create_appeal(
         resource_id=str(appeal.id)
     )
     
+    # Send notifications
+    try:
+        from app.services.notification_service import NotificationService
+        notification_service = NotificationService(db)
+        admin_ids = await notification_service.get_admin_user_ids()
+        await notification_service.notify_appeal_submitted(
+            report=report,
+            appeal_id=appeal.id,
+            admin_user_ids=admin_ids
+        )
+        await db.commit()
+    except Exception as e:
+        logger.error(f"Failed to send appeal submission notifications: {str(e)}")
+        # Don't fail the request if notifications fail
+    
     return appeal
 
 
@@ -303,6 +318,27 @@ async def review_appeal(
         resource_type="appeal",
         resource_id=str(appeal_id)
     )
+    
+    # Send notifications
+    try:
+        from app.services.notification_service import NotificationService
+        from app.models.report import Report
+        notification_service = NotificationService(db)
+        report_result = await db.execute(
+            select(Report).where(Report.id == appeal.report_id)
+        )
+        report = report_result.scalar_one_or_none()
+        if report:
+            await notification_service.notify_appeal_reviewed(
+                report=report,
+                appeal_id=appeal.id,
+                approved=(review_data.status == AppealStatus.APPROVED),
+                review_notes=review_data.review_notes
+            )
+            await db.commit()
+    except Exception as e:
+        logger.error(f"Failed to send appeal review notifications: {str(e)}")
+        # Don't fail the request if notifications fail
     
     return appeal
 

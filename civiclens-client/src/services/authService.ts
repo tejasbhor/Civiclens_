@@ -6,9 +6,9 @@ export interface User {
   phone: string;
   full_name?: string;
   email?: string;
-  role: 'citizen' | 'officer' | 'admin';
+  role: 'citizen' | 'contributor' | 'moderator' | 'nodal_officer' | 'auditor' | 'admin' | 'super_admin';
   profile_completion: 'minimal' | 'basic' | 'complete';
-  account_created_via: 'otp' | 'password';
+  account_created_via: 'otp' | 'password' | 'admin_seed' | 'government_sso' | 'system_seed';
   phone_verified: boolean;
   email_verified: boolean;
   reputation_score?: number;
@@ -104,16 +104,18 @@ export const authService = {
 
   /**
    * Logout user
+   * Works even when backend is down - clears all local auth data
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post('/auth/logout', {}, { timeout: 5000 });
     } catch (error) {
-      console.error('Logout error:', error);
+      // Ignore errors - we'll clear local storage anyway
+      console.error('Logout API call failed (backend may be down):', error);
     } finally {
-      // Clear local storage regardless of API call success
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
+      // Always clear local storage regardless of API call success
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
     }
   },

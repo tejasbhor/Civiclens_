@@ -136,3 +136,22 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Production-ready toast z-index configuration */
+/* Ensure toasts appear above all other elements including navbar */
+@layer utilities {
+  /* Radix UI Toast Viewport */
+  [data-radix-toast-viewport] {
+    z-index: 9999 !important;
+  }
+  
+  /* Sonner Toast Container */
+  [data-sonner-toaster] {
+    z-index: 9999 !important;
+  }
+  
+  /* Sonner Toast Items */
+  [data-sonner-toast] {
+    z-index: 9999 !important;
+  }
+}

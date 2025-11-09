@@ -12,6 +12,7 @@ class ReportStatus(str, enum.Enum):
     CLASSIFIED = "classified"
     ASSIGNED_TO_DEPARTMENT = "assigned_to_department"
     ASSIGNED_TO_OFFICER = "assigned_to_officer"
+    ASSIGNMENT_REJECTED = "assignment_rejected"  # Officer rejected assignment
     ACKNOWLEDGED = "acknowledged"
     IN_PROGRESS = "in_progress"
     PENDING_VERIFICATION = "pending_verification"
@@ -90,10 +91,22 @@ class Report(BaseModel):
     duplicate_of_report_id = Column(Integer, ForeignKey("reports.id", ondelete="SET NULL"), nullable=True)
     rejection_reason = Column(Text, nullable=True)
     hold_reason = Column(Text, nullable=True)
+    
+    # Officer Assignment Rejection
+    assignment_rejection_reason = Column(Text, nullable=True)
+    assignment_rejected_at = Column(DateTime(timezone=True), nullable=True)
+    assignment_rejected_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # ON_HOLD Enhancements
+    estimated_resume_date = Column(DateTime(timezone=True), nullable=True)
+    hold_approved_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    hold_approval_required = Column(Boolean, default=False, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="reports", foreign_keys=[user_id])
     classified_by = relationship("User", foreign_keys=[classified_by_user_id])
+    assignment_rejected_by = relationship("User", foreign_keys=[assignment_rejected_by_user_id])
+    hold_approved_by = relationship("User", foreign_keys=[hold_approved_by_user_id])
     department = relationship("Department", back_populates="reports")
     media = relationship("Media", back_populates="report", cascade="all, delete-orphan")
     task = relationship("Task", back_populates="report", uselist=False, cascade="all, delete-orphan")

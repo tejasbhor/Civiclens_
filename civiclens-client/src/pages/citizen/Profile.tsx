@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Mail, MapPin, Phone, LogOut, Edit, Loader2, AlertCircle, Shield, Bell } from "lucide-react";
+import { ArrowLeft, User, Mail, MapPin, Phone, LogOut, Edit, Loader2, AlertCircle, Shield, Bell, CheckCircle2, XCircle, RefreshCw, Award, Star, TrendingUp, Activity, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/authService";
+import { userService } from "@/services/userService";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { CitizenHeader } from "@/components/layout/CitizenHeader";
+import { logger } from "@/lib/logger";
 
 const CitizenProfile = () => {
   const navigate = useNavigate();
@@ -17,13 +21,27 @@ const CitizenProfile = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState({
-    reputation_score: 0,
-    total_reports: 0,
-    reports_resolved: 0,
-    total_validations: 0,
-    helpful_validations: 0
+  const [saving, setSaving] = useState(false);
+  const [userStats, setUserStats] = useState<{
+    total_reports?: number;
+    resolved_reports?: number;
+    in_progress_reports?: number;
+    active_reports?: number;
+    avg_resolution_time_days?: number;
+    reputation_score?: number;
+  } | null>(null);
+  const [preferences, setPreferences] = useState({
+    theme: 'auto' as 'light' | 'dark' | 'auto',
+    density: 'comfortable' as 'comfortable' | 'compact'
   });
+  const [verificationStatus, setVerificationStatus] = useState<{
+    email: { value: string | null; verified: boolean; last_sent_at: string | null };
+    phone: { value: string | null; verified: boolean; last_sent_at: string | null };
+  } | null>(null);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [emailToken, setEmailToken] = useState("");
+  const [phoneOTP, setPhoneOTP] = useState("");
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -34,17 +52,10 @@ const CitizenProfile = () => {
     email_notifications: true
   });
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/citizen/login');
-    } else if (user) {
-      loadProfileData();
-    }
-  }, [authLoading, user, navigate]);
-
-  const loadProfileData = () => {
+  const loadProfileData = useCallback(async () => {
     if (!user) return;
     
+    try {
     // Set form data from user
     setFormData({
       full_name: user.full_name || "",
@@ -56,19 +67,40 @@ const CitizenProfile = () => {
       email_notifications: true
     });
 
-    // Set stats from user
-    setStats({
-      reputation_score: user.reputation_score || 0,
-      total_reports: user.total_reports || 0,
-      reports_resolved: 0,
-      total_validations: 0,
-      helpful_validations: 0
-    });
-  };
+      // Load user stats, preferences, and verification status in parallel
+      const [statsData, prefsData, verificationData] = await Promise.allSettled([
+        userService.getMyStats().catch(() => null),
+        userService.getPreferences().catch(() => null),
+        userService.getVerificationStatus().catch(() => null)
+      ]);
+
+      if (statsData.status === 'fulfilled' && statsData.value) {
+        setUserStats(statsData.value);
+      }
+
+      if (prefsData.status === 'fulfilled' && prefsData.value) {
+        setPreferences(prefsData.value);
+      }
+
+      if (verificationData.status === 'fulfilled' && verificationData.value) {
+        setVerificationStatus(verificationData.value);
+      }
+    } catch (error) {
+      logger.error('Failed to load profile data:', error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/citizen/login');
+    } else if (user) {
+      loadProfileData();
+    }
+  }, [authLoading, user, navigate, loadProfileData]);
 
   const handleSave = async () => {
     try {
-      setLoading(true);
+      setSaving(true);
       
       // Prepare update data (only send non-empty fields)
       const updateData: any = {};
@@ -85,13 +117,14 @@ const CitizenProfile = () => {
         updateData.bio = formData.bio;
       }
       
-      // Add notification preferences
-      updateData.push_notifications = formData.push_notifications;
-      updateData.sms_notifications = formData.sms_notifications;
-      updateData.email_notifications = formData.email_notifications;
-
-      await authService.updateProfile(updateData);
+      // Update profile and preferences in parallel
+      await Promise.all([
+        userService.updateProfile(updateData),
+        userService.updatePreferences(preferences)
+      ]);
+      
       await refreshUser();
+      await loadProfileData();
       
       toast({
         title: "Profile Updated",
@@ -99,14 +132,122 @@ const CitizenProfile = () => {
       });
       setIsEditing(false);
     } catch (error: any) {
-      console.error('Failed to update profile:', error);
+      logger.error('Failed to update profile:', error);
       toast({
         title: "Update Failed",
         description: error.response?.data?.detail || "Failed to update profile. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
+    }
+  };
+
+  const handleSendEmailVerification = async () => {
+    try {
+      setVerifyingEmail(true);
+      const result = await userService.sendEmailVerification();
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your email for the verification link.",
+      });
+      if (result.debug_token) {
+        setEmailToken(result.debug_token);
+      }
+      await loadProfileData();
+    } catch (error: any) {
+      logger.error('Failed to send email verification:', error);
+      toast({
+        title: "Failed to Send Email",
+        description: error.response?.data?.detail || "Failed to send verification email. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setVerifyingEmail(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!emailToken) {
+      toast({
+        title: "Token Required",
+        description: "Please enter the verification token from your email.",
+        variant: "destructive"
+      });
+      return;
+    }
+    try {
+      setVerifyingEmail(true);
+      await userService.verifyEmail(emailToken);
+      toast({
+        title: "Email Verified",
+        description: "Your email has been verified successfully.",
+      });
+      setEmailToken("");
+      await loadProfileData();
+    } catch (error: any) {
+      logger.error('Failed to verify email:', error);
+      toast({
+        title: "Verification Failed",
+        description: error.response?.data?.detail || "Invalid or expired token. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setVerifyingEmail(false);
+    }
+  };
+
+  const handleSendPhoneVerification = async () => {
+    try {
+      setVerifyingPhone(true);
+      const result = await userService.sendPhoneVerification();
+      toast({
+        title: "Verification OTP Sent",
+        description: "Please check your phone for the OTP.",
+      });
+      if (result.debug_otp) {
+        setPhoneOTP(result.debug_otp);
+      }
+      await loadProfileData();
+    } catch (error: any) {
+      logger.error('Failed to send phone verification:', error);
+      toast({
+        title: "Failed to Send OTP",
+        description: error.response?.data?.detail || "Failed to send verification OTP. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setVerifyingPhone(false);
+    }
+  };
+
+  const handleVerifyPhone = async () => {
+    if (!phoneOTP) {
+      toast({
+        title: "OTP Required",
+        description: "Please enter the OTP sent to your phone.",
+        variant: "destructive"
+      });
+      return;
+    }
+    try {
+      setVerifyingPhone(true);
+      await userService.verifyPhone(phoneOTP);
+      toast({
+        title: "Phone Verified",
+        description: "Your phone number has been verified successfully.",
+      });
+      setPhoneOTP("");
+      await loadProfileData();
+    } catch (error: any) {
+      logger.error('Failed to verify phone:', error);
+      toast({
+        title: "Verification Failed",
+        description: error.response?.data?.detail || "Invalid or expired OTP. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setVerifyingPhone(false);
     }
   };
 
@@ -134,31 +275,44 @@ const CitizenProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/citizen/dashboard')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="font-bold text-foreground">My Profile</h1>
-            <p className="text-xs text-muted-foreground">Manage your account details</p>
-          </div>
-        </div>
-      </header>
+      <CitizenHeader />
 
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Profile Header */}
-        <Card className="p-6 mb-6">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header Section */}
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/citizen/dashboard')}
+            className="mb-4"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <h1 className="text-3xl font-bold text-foreground mb-2">My Profile</h1>
+          <p className="text-muted-foreground">Manage your account details, preferences, and verification</p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Profile Header Card */}
+            <Card className="p-6 bg-gradient-to-br from-primary/5 via-background to-accent/5">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
               <User className="w-10 h-10 text-white" />
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-foreground">{user.full_name || 'Citizen'}</h2>
-              <p className="text-muted-foreground">{user.phone}</p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    {user.phone}
+                  </p>
               {user.email && (
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                      <Mail className="w-4 h-4" />
+                      {user.email}
+                    </p>
               )}
             </div>
             {!isEditing && (
@@ -171,38 +325,36 @@ const CitizenProfile = () => {
 
           {/* Account Type Badge */}
           <div className="mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
-              <Shield className="w-4 h-4" />
+                <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  <Shield className="w-3 h-3 mr-1" />
               {user.profile_completion === 'complete' ? 'Complete Account' : 
                user.profile_completion === 'basic' ? 'Basic Account' : 'Minimal Account'}
-            </div>
+                </Badge>
           </div>
 
-          {/* Stats */}
-          {user.profile_completion === 'complete' ? (
+              {/* Stats Grid */}
+              {userStats && (
             <div className="grid grid-cols-3 gap-4 pt-6 border-t">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{stats.total_reports}</div>
-                <div className="text-sm text-muted-foreground">Reports</div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-primary flex items-center justify-center gap-1">
+                      <FileText className="w-5 h-5" />
+                      {userStats.total_reports || 0}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Total Reports</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-500">{stats.reports_resolved}</div>
-                <div className="text-sm text-muted-foreground">Resolved</div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400 flex items-center justify-center gap-1">
+                      <CheckCircle2 className="w-5 h-5" />
+                      {userStats.resolved_reports || 0}
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-amber-500">{stats.reputation_score}</div>
-                <div className="text-sm text-muted-foreground">Reputation</div>
+                    <div className="text-sm text-muted-foreground mt-1">Resolved</div>
               </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
+                      <Award className="w-5 h-5" />
+                      {userStats.reputation_score || user?.reputation_score || 0}
             </div>
-          ) : (
-            <div className="pt-6 border-t">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900 mb-2">
-                  <strong>Upgrade to Complete Account</strong>
-                </p>
-                <p className="text-sm text-blue-700">
-                  Add your name and email to unlock reputation points and track your community impact!
-                </p>
+                    <div className="text-sm text-muted-foreground mt-1">Reputation</div>
               </div>
             </div>
           )}
@@ -294,8 +446,8 @@ const CitizenProfile = () => {
 
             {isEditing && (
               <div className="flex gap-3 pt-4">
-                <Button onClick={handleSave} className="flex-1" disabled={loading}>
-                  {loading ? (
+                <Button onClick={handleSave} className="flex-1" disabled={saving}>
+                  {saving ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Saving...
@@ -307,7 +459,7 @@ const CitizenProfile = () => {
                 <Button onClick={() => {
                   setIsEditing(false);
                   loadProfileData();
-                }} variant="outline" className="flex-1" disabled={loading}>
+                }} variant="outline" className="flex-1" disabled={saving}>
                   Cancel
                 </Button>
               </div>
@@ -315,18 +467,197 @@ const CitizenProfile = () => {
           </div>
         </Card>
 
-        {/* Notification Preferences */}
-        <Card className="p-6 mb-6">
+        {/* Verification Status */}
+        <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            Notification Preferences
+            <Shield className="w-5 h-5" />
+            Account Verification
+          </h3>
+          
+          <div className="space-y-4">
+            {/* Phone Verification */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <Label className="text-base font-medium">Phone Number</Label>
+                    <p className="text-sm text-muted-foreground">{user.phone}</p>
+                  </div>
+                </div>
+                {verificationStatus?.phone.verified ? (
+                  <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Not Verified
+                  </Badge>
+                )}
+              </div>
+              {!verificationStatus?.phone.verified && (
+                <div className="space-y-2 mt-3">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter OTP"
+                      value={phoneOTP}
+                      onChange={(e) => setPhoneOTP(e.target.value)}
+                      className="flex-1"
+                      maxLength={6}
+                    />
+                    <Button 
+                      onClick={handleVerifyPhone} 
+                      disabled={verifyingPhone || !phoneOTP}
+                      size="sm"
+                    >
+                      {verifyingPhone ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSendPhoneVerification}
+                    disabled={verifyingPhone}
+                    className="w-full"
+                  >
+                    {verifyingPhone ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Send Verification OTP
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Email Verification */}
+            {formData.email && (
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <Label className="text-base font-medium">Email Address</Label>
+                      <p className="text-sm text-muted-foreground">{formData.email}</p>
+                    </div>
+                  </div>
+                  {verificationStatus?.email.verified ? (
+                    <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Not Verified
+                    </Badge>
+                  )}
+                </div>
+                {!verificationStatus?.email.verified && (
+                  <div className="space-y-2 mt-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter verification token"
+                        value={emailToken}
+                        onChange={(e) => setEmailToken(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={handleVerifyEmail} 
+                        disabled={verifyingEmail || !emailToken}
+                        size="sm"
+                      >
+                        {verifyingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                      </Button>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleSendEmailVerification}
+                      disabled={verifyingEmail}
+                      className="w-full"
+                    >
+                      {verifyingEmail ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Verification Email
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Preferences Card */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Preferences
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="theme">Theme</Label>
+                  <select
+                    id="theme"
+                    value={preferences.theme}
+                    onChange={(e) => setPreferences({ ...preferences, theme: e.target.value as 'light' | 'dark' | 'auto' })}
+                    disabled={!isEditing}
+                    className="w-full mt-2 px-3 py-2 rounded-md border border-input bg-background disabled:opacity-50"
+                  >
+                    <option value="auto">Auto (System)</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="density">Density</Label>
+                  <select
+                    id="density"
+                    value={preferences.density}
+                    onChange={(e) => setPreferences({ ...preferences, density: e.target.value as 'comfortable' | 'compact' })}
+                    disabled={!isEditing}
+                    className="w-full mt-2 px-3 py-2 rounded-md border border-input bg-background disabled:opacity-50"
+                  >
+                    <option value="comfortable">Comfortable</option>
+                    <option value="compact">Compact</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+
+            {/* Notification Preferences */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Notifications
           </h3>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <Label htmlFor="push">Push Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive push notifications on your device</p>
+                    <p className="text-sm text-muted-foreground">Receive push notifications</p>
               </div>
               <Switch
                 id="push"
@@ -339,7 +670,7 @@ const CitizenProfile = () => {
             <div className="flex items-center justify-between">
               <div>
                 <Label htmlFor="sms">SMS Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive SMS updates on your phone</p>
+                    <p className="text-sm text-muted-foreground">Receive SMS updates</p>
               </div>
               <Switch
                 id="sms"
@@ -353,7 +684,7 @@ const CitizenProfile = () => {
               <div>
                 <Label htmlFor="email-notif">Email Notifications</Label>
                 <p className="text-sm text-muted-foreground">
-                  {user.email ? 'Receive updates via email' : 'Add email to enable'}
+                      {user.email ? 'Receive email updates' : 'Add email to enable'}
                 </p>
               </div>
               <Switch
@@ -366,6 +697,35 @@ const CitizenProfile = () => {
           </div>
         </Card>
 
+            {/* Additional Stats */}
+            {userStats && userStats.avg_resolution_time_days !== undefined && (
+              <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  Performance
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Avg Resolution Time</span>
+                    <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      {userStats.avg_resolution_time_days.toFixed(1)} days
+                    </span>
+                  </div>
+                  {userStats.in_progress_reports !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Activity className="w-3 h-3" />
+                        In Progress
+                      </span>
+                      <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                        {userStats.in_progress_reports}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+
         {/* Logout */}
         <Card className="p-6">
           <Button onClick={handleLogout} variant="destructive" className="w-full">
@@ -373,6 +733,8 @@ const CitizenProfile = () => {
             Logout
           </Button>
         </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
