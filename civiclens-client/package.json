@@ -1,7 +1,7 @@
 {
   "name": "civiclens-client",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "CivicLens Citizen & Officer Web Portal",
   "type": "module",
   "scripts": {
