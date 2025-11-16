@@ -53,6 +53,8 @@ logs/
 media/
 uploads/
 civiclens-backend/media/
+# Exception: Allow media service files in mobile app
+!civiclens-mobile/src/**/media/
 
 # Testing
 .pytest_cache/
@@ -71,6 +73,8 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
+# Exception: Allow package-lock.json for mobile app (required by EAS)
+!civiclens-mobile/package-lock.json
 
 # Next.js
 .next/
