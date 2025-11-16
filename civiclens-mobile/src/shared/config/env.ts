@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Environment = 'development' | 'staging' | 'production';
 
@@ -9,6 +10,9 @@ interface EnvConfig {
   ENABLE_LOGGING: boolean;
   ENVIRONMENT: Environment;
 }
+
+// Storage key for custom server URL
+const CUSTOM_SERVER_URL_KEY = '@civiclens_custom_server_url';
 
 // Automatically detect the correct API URL based on environment
 const getApiBaseUrl = (): string => {
@@ -51,8 +55,9 @@ const stagingConfig: EnvConfig = {
 };
 
 const prodConfig: EnvConfig = {
-  API_BASE_URL: 'http://192.168.1.33:8000/api/v1',
-  GRAPHQL_ENDPOINT: 'http://192.168.1.33:8000/graphql',
+  // Use .local hostname for automatic network discovery (works on any WiFi)
+  API_BASE_URL: 'http://JARVIS.local:8000/api/v1',
+  GRAPHQL_ENDPOINT: 'http://JARVIS.local:8000/graphql',
   ENABLE_LOGGING: true, // Enable for testing
   ENVIRONMENT: 'production',
 };
@@ -71,3 +76,35 @@ const getEnvConfig = (): EnvConfig => {
 };
 
 export const ENV = getEnvConfig();
+
+// Helper functions to manage custom server URL
+export const getCustomServerUrl = async (): Promise<string | null> => {
+  try {
+    return await AsyncStorage.getItem(CUSTOM_SERVER_URL_KEY);
+  } catch (error) {
+    console.error('Failed to get custom server URL:', error);
+    return null;
+  }
+};
+
+export const setCustomServerUrl = async (url: string): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(CUSTOM_SERVER_URL_KEY, url);
+  } catch (error) {
+    console.error('Failed to set custom server URL:', error);
+    throw error;
+  }
+};
+
+export const clearCustomServerUrl = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(CUSTOM_SERVER_URL_KEY);
+  } catch (error) {
+    console.error('Failed to clear custom server URL:', error);
+  }
+};
+
+export const getActiveApiUrl = async (): Promise<string> => {
+  const customUrl = await getCustomServerUrl();
+  return customUrl || ENV.API_BASE_URL;
+};
