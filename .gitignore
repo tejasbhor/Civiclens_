@@ -10,8 +10,13 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Python libs only - don't block frontend lib directories
+civiclens-backend/lib/
 lib64/
+**/dist/lib/
+!civiclens-admin/src/lib/
+!civiclens-client/src/lib/
+!civiclens-mobile/src/lib/
 parts/
 sdist/
 var/
