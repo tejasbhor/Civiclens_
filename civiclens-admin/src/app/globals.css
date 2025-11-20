@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * CivicLens Design System
+ * Unified design tokens for consistent UI/UX
+ */
+@layer base {
+  :root {
+    /* Brand Colors - HSL */
+    --civic-blue-500: 210 80% 48%;
+    --civic-blue-600: 210 85% 40%;
+    --civic-blue-700: 210 90% 32%;
+    --civic-green-500: 155 60% 45%;
+    --civic-green-600: 155 65% 38%;
+    --civic-amber-500: 35 95% 55%;
+    --civic-red-500: 0 70% 55%;
+    --civic-red-600: 0 75% 48%;
+    
+    /* Semantic Colors */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+    --primary: 210 80% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 155 60% 45%;
+    --muted: 210 18% 94%;
+    --muted-foreground: 210 12% 40%;
+    --border: 210 16% 88%;
+    --ring: 210 80% 48%;
+    
+    /* Status Colors */
+    --status-received: 210 80% 48%;
+    --status-in-progress: 35 95% 55%;
+    --status-resolved: 155 60% 45%;
+    --status-rejected: 0 70% 55%;
+    
+    /* Spacing & Layout */
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 { @apply text-3xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-xl; }
+  h4 { @apply text-lg; }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm p-6;
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209, 213, 219) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(209, 213, 219);
+    border-radius: 20px;
+  }
+}
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  @apply rounded-lg;
+}
+
+/* Custom Scrollbar for Modals */
+.modal-content {
+  @apply scrollbar-thin;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

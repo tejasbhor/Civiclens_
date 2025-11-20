@@ -1,0 +1,293 @@
+/**
+ * CivicLens Design System
+ * Unified design tokens for consistent UI/UX across all applications
+ * Following best practices: HSL colors, semantic naming, accessibility-first
+ */
+
+@layer base {
+  :root {
+    /* ========================================
+       COLOR PALETTE - HSL for better manipulation
+       ======================================== */
+    
+    /* Brand Colors */
+    --civic-blue-50: 210 100% 97%;
+    --civic-blue-100: 210 95% 92%;
+    --civic-blue-200: 210 90% 85%;
+    --civic-blue-300: 210 85% 75%;
+    --civic-blue-400: 210 80% 60%;
+    --civic-blue-500: 210 80% 48%;  /* Primary brand color */
+    --civic-blue-600: 210 85% 40%;
+    --civic-blue-700: 210 90% 32%;
+    --civic-blue-800: 210 95% 24%;
+    --civic-blue-900: 210 100% 16%;
+    
+    --civic-green-50: 155 65% 95%;
+    --civic-green-100: 155 60% 88%;
+    --civic-green-200: 155 58% 75%;
+    --civic-green-300: 155 56% 62%;
+    --civic-green-400: 155 58% 52%;
+    --civic-green-500: 155 60% 45%;  /* Success/Secondary */
+    --civic-green-600: 155 65% 38%;
+    --civic-green-700: 155 70% 30%;
+    --civic-green-800: 155 75% 22%;
+    --civic-green-900: 155 80% 15%;
+    
+    --civic-amber-50: 35 100% 96%;
+    --civic-amber-100: 35 100% 90%;
+    --civic-amber-200: 35 98% 80%;
+    --civic-amber-300: 35 96% 68%;
+    --civic-amber-400: 35 95% 58%;
+    --civic-amber-500: 35 95% 55%;  /* Warning */
+    --civic-amber-600: 35 90% 48%;
+    --civic-amber-700: 35 85% 40%;
+    --civic-amber-800: 35 80% 32%;
+    --civic-amber-900: 35 75% 24%;
+    
+    --civic-red-50: 0 85% 97%;
+    --civic-red-100: 0 80% 92%;
+    --civic-red-200: 0 78% 84%;
+    --civic-red-300: 0 76% 72%;
+    --civic-red-400: 0 74% 62%;
+    --civic-red-500: 0 70% 55%;  /* Error/Danger */
+    --civic-red-600: 0 75% 48%;
+    --civic-red-700: 0 80% 40%;
+    --civic-red-800: 0 85% 32%;
+    --civic-red-900: 0 90% 24%;
+    
+    /* Neutral Grays */
+    --gray-50: 210 20% 98%;
+    --gray-100: 210 18% 94%;
+    --gray-200: 210 16% 88%;
+    --gray-300: 210 14% 78%;
+    --gray-400: 210 12% 62%;
+    --gray-500: 210 10% 50%;
+    --gray-600: 210 12% 40%;
+    --gray-700: 210 15% 30%;
+    --gray-800: 210 18% 20%;
+    --gray-900: 210 20% 12%;
+    
+    /* ========================================
+       SEMANTIC COLORS - Light Mode
+       ======================================== */
+    
+    /* Base */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+    
+    /* Surface */
+    --surface: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
+    
+    /* Primary */
+    --primary: var(--civic-blue-500);
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: var(--civic-blue-600);
+    --primary-active: var(--civic-blue-700);
+    
+    /* Secondary */
+    --secondary: var(--civic-green-500);
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: var(--civic-green-600);
+    --secondary-active: var(--civic-green-700);
+    
+    /* Accent */
+    --accent: 195 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Muted */
+    --muted: var(--gray-100);
+    --muted-foreground: var(--gray-600);
+    
+    /* Destructive */
+    --destructive: var(--civic-red-500);
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border & Input */
+    --border: var(--gray-200);
+    --input: var(--gray-200);
+    --ring: var(--civic-blue-500);
+    
+    /* Card */
+    --card: 0 0% 100%;
+    --card-foreground: var(--foreground);
+    
+    /* ========================================
+       STATUS COLORS - Consistent across app
+       ======================================== */
+    
+    --status-received: var(--civic-blue-500);
+    --status-classified: 270 60% 60%;
+    --status-assigned: var(--civic-blue-600);
+    --status-acknowledged: 260 70% 65%;
+    --status-in-progress: var(--civic-amber-500);
+    --status-pending-verification: 280 65% 60%;
+    --status-resolved: var(--civic-green-500);
+    --status-closed: var(--gray-500);
+    --status-rejected: var(--civic-red-500);
+    --status-on-hold: var(--gray-600);
+    
+    /* ========================================
+       SEVERITY/PRIORITY COLORS
+       ======================================== */
+    
+    --severity-critical: var(--civic-red-600);
+    --severity-high: var(--civic-red-500);
+    --severity-medium: var(--civic-amber-500);
+    --severity-low: var(--civic-blue-400);
+    
+    /* ========================================
+       SPACING SCALE - 4px base unit
+       ======================================== */
+    
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;  /* 4px */
+    --spacing-2: 0.5rem;   /* 8px */
+    --spacing-3: 0.75rem;  /* 12px */
+    --spacing-4: 1rem;     /* 16px */
+    --spacing-5: 1.25rem;  /* 20px */
+    --spacing-6: 1.5rem;   /* 24px */
+    --spacing-8: 2rem;     /* 32px */
+    --spacing-10: 2.5rem;  /* 40px */
+    --spacing-12: 3rem;    /* 48px */
+    --spacing-16: 4rem;    /* 64px */
+    --spacing-20: 5rem;    /* 80px */
+    
+    /* ========================================
+       BORDER RADIUS
+       ======================================== */
+    
+    --radius-sm: 0.375rem;  /* 6px */
+    --radius-md: 0.5rem;    /* 8px */
+    --radius-lg: 0.75rem;   /* 12px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-2xl: 1.5rem;   /* 24px */
+    --radius-full: 9999px;
+    
+    /* Default radius */
+    --radius: var(--radius-lg);
+    
+    /* ========================================
+       SHADOWS - Elevation system
+       ======================================== */
+    
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    
+    /* ========================================
+       TYPOGRAPHY
+       ======================================== */
+    
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    
+    /* Font Sizes */
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
+    --text-4xl: 2.25rem;    /* 36px */
+    
+    /* Line Heights */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+    
+    /* ========================================
+       TRANSITIONS
+       ======================================== */
+    
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* ========================================
+       Z-INDEX SCALE
+       ======================================== */
+    
+    --z-base: 0;
+    --z-dropdown: 1000;
+    --z-sticky: 1100;
+    --z-fixed: 1200;
+    --z-modal-backdrop: 1300;
+    --z-modal: 1400;
+    --z-popover: 1500;
+    --z-tooltip: 1600;
+  }
+
+  /* ========================================
+     DARK MODE
+     ======================================== */
+  
+  .dark {
+    --background: 215 30% 8%;
+    --foreground: 210 20% 95%;
+    
+    --surface: 215 28% 12%;
+    --surface-elevated: 215 26% 16%;
+    --surface-overlay: 215 24% 20%;
+    
+    --primary: var(--civic-blue-400);
+    --primary-foreground: 215 30% 8%;
+    --primary-hover: var(--civic-blue-500);
+    --primary-active: var(--civic-blue-600);
+    
+    --secondary: var(--civic-green-400);
+    --secondary-foreground: 215 30% 8%;
+    
+    --muted: 215 25% 18%;
+    --muted-foreground: 215 10% 65%;
+    
+    --border: 215 25% 20%;
+    --input: 215 25% 18%;
+    
+    --card: 215 28% 12%;
+    --card-foreground: 210 20% 95%;
+    
+    /* Adjust shadows for dark mode */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+@layer utilities {
+  /* Status Badge Colors */
+  .status-received { @apply bg-[hsl(var(--status-received))] text-white; }
+  .status-classified { @apply bg-[hsl(var(--status-classified))] text-white; }
+  .status-assigned { @apply bg-[hsl(var(--status-assigned))] text-white; }
+  .status-acknowledged { @apply bg-[hsl(var(--status-acknowledged))] text-white; }
+  .status-in-progress { @apply bg-[hsl(var(--status-in-progress))] text-white; }
+  .status-pending-verification { @apply bg-[hsl(var(--status-pending-verification))] text-white; }
+  .status-resolved { @apply bg-[hsl(var(--status-resolved))] text-white; }
+  .status-closed { @apply bg-[hsl(var(--status-closed))] text-white; }
+  .status-rejected { @apply bg-[hsl(var(--status-rejected))] text-white; }
+  .status-on-hold { @apply bg-[hsl(var(--status-on-hold))] text-white; }
+  
+  /* Severity Colors */
+  .severity-critical { @apply text-[hsl(var(--severity-critical))]; }
+  .severity-high { @apply text-[hsl(var(--severity-high))]; }
+  .severity-medium { @apply text-[hsl(var(--severity-medium))]; }
+  .severity-low { @apply text-[hsl(var(--severity-low))]; }
+  
+  /* Surface Elevation */
+  .surface { @apply bg-[hsl(var(--surface))]; }
+  .surface-elevated { @apply bg-[hsl(var(--surface-elevated))]; }
+  .surface-overlay { @apply bg-[hsl(var(--surface-overlay))]; }
+}
