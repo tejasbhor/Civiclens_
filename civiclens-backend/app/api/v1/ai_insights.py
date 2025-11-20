@@ -292,11 +292,11 @@ async def get_ai_metrics(
 
 @router.get("/pipeline-status", response_model=PipelineStatus)
 async def get_pipeline_status(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get real-time AI pipeline status
+    Public endpoint for monitoring purposes
     """
     
     try:
@@ -305,7 +305,11 @@ async def get_pipeline_status(
         # Check worker heartbeat
         heartbeat = await redis.get("ai_worker:heartbeat")
         worker_status = "running" if heartbeat else "stopped"
-        last_heartbeat = heartbeat.decode() if heartbeat else None
+        # Handle both bytes and string
+        if heartbeat:
+            last_heartbeat = heartbeat.decode() if isinstance(heartbeat, bytes) else heartbeat
+        else:
+            last_heartbeat = None
         
         # Queue lengths
         queue_length = await redis.llen("queue:ai_processing")
@@ -316,7 +320,9 @@ async def get_pipeline_status(
         reports_in_queue = []
         
         for item in queue_items:
-            report_id = int(item.decode())
+            # Handle both bytes and string
+            report_id_str = item.decode() if isinstance(item, bytes) else item
+            report_id = int(report_id_str)
             report = await db.get(Report, report_id)
             if report:
                 reports_in_queue.append({
