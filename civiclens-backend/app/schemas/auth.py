@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional
+from enum import Enum
 from app.models.user import UserRole
+
+
+class PortalType(str, Enum):
+    """Portal types for role-based access control"""
+    CITIZEN = "citizen"  # For citizens, contributors, moderators
+    OFFICER = "officer"  # For nodal officers, auditors, admins
 
 
 class OTPRequest(BaseModel):
@@ -39,6 +46,7 @@ class OTPVerify(BaseModel):
 class LoginRequest(BaseModel):
     phone: str
     password: str = Field(..., min_length=8)
+    portal_type: PortalType = Field(..., description="Portal type: 'citizen' or 'officer'")
 
 
 class Token(BaseModel):

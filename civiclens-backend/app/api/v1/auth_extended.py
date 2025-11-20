@@ -75,12 +75,16 @@ async def refresh_token(
     )
     
     # Update session with new access token JTI
+    print(f"🔄 Refresh: Updating session {session.id} - Old JTI: {session.jti[:10]}... → New JTI: {new_access_jti[:10]}...")
     session.jti = new_access_jti
     session.last_activity = datetime.utcnow()
     await db.commit()
+    await db.refresh(session)  # Ensure session is refreshed from DB
+    print(f"✅ Refresh: Session {session.id} updated successfully with JTI: {session.jti[:10]}...")
     
     return Token(
         access_token=access_token,
+        refresh_token=request.refresh_token,  # Return same refresh token for mobile compatibility
         user_id=user.id,
         role=user.role
     )

@@ -79,8 +79,12 @@ export const authService = {
   /**
    * Login with password (for existing full accounts)
    */
-  async login(phone: string, password: string): Promise<AuthResponse> {
-    const response = await apiClient.post('/auth/login', { phone, password });
+  async login(phone: string, password: string, portalType: 'citizen' | 'officer' = 'citizen'): Promise<AuthResponse> {
+    const response = await apiClient.post('/auth/login', { 
+      phone, 
+      password,
+      portal_type: portalType 
+    });
     return response.data;
   },
 

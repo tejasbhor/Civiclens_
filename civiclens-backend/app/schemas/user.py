@@ -124,8 +124,11 @@ class UserStatsResponse(BaseModel):
     """User statistics and achievements"""
     reputation_score: int
     total_reports: int
+    in_progress_reports: int
+    resolved_reports: int
+    active_reports: int  # Alias for in_progress_reports
     total_validations: int
     helpful_validations: int
-    reports_resolved: int
+    tasks_resolved: int  # For officers
     can_promote_to_contributor: bool
     next_milestone: Optional[str]

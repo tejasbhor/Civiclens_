@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
+from datetime import datetime
 from app.crud.base import CRUDBase
 from app.models.task import Task, TaskStatus
 from app.schemas.task import TaskCreate, TaskUpdate
@@ -73,6 +74,77 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
                 'status': TaskStatus.IN_PROGRESS
             }
         )
+    
+    async def count_by_officer(
+        self,
+        db: AsyncSession,
+        officer_id: int
+    ) -> int:
+        """Count total tasks assigned to an officer"""
+        result = await db.execute(
+            select(func.count(Task.id))
+            .where(Task.assigned_to == officer_id)
+        )
+        return result.scalar() or 0
+    
+    async def count_by_officer_and_status(
+        self,
+        db: AsyncSession,
+        officer_id: int,
+        status: str
+    ) -> int:
+        """Count tasks by officer and status"""
+        result = await db.execute(
+            select(func.count(Task.id))
+            .where(
+                and_(
+                    Task.assigned_to == officer_id,
+                    Task.status == status
+                )
+            )
+        )
+        return result.scalar() or 0
+    
+    async def count_overdue_by_officer(
+        self,
+        db: AsyncSession,
+        officer_id: int,
+        overdue_cutoff: datetime
+    ) -> int:
+        """Count overdue tasks for an officer"""
+        result = await db.execute(
+            select(func.count(Task.id))
+            .where(
+                and_(
+                    Task.assigned_to == officer_id,
+                    Task.created_at < overdue_cutoff,
+                    Task.status.in_(["assigned", "in_progress", "acknowledged"])
+                )
+            )
+        )
+        return result.scalar() or 0
+    
+    async def get_avg_resolution_time(
+        self,
+        db: AsyncSession,
+        officer_id: int
+    ) -> float:
+        """Get average resolution time in hours for an officer"""
+        result = await db.execute(
+            select(
+                func.avg(
+                    func.extract('epoch', Task.resolved_at - Task.created_at) / 3600
+                )
+            )
+            .where(
+                and_(
+                    Task.assigned_to == officer_id,
+                    Task.status == "resolved",
+                    Task.resolved_at.isnot(None)
+                )
+            )
+        )
+        return result.scalar() or 0.0
 
 
 # Singleton instance

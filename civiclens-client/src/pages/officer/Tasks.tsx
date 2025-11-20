@@ -360,11 +360,11 @@ const Tasks = () => {
               className="flex-1 bg-secondary hover:bg-secondary/90"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/officer/task/${task.id}/acknowledge`);
+              navigate(`/officer/task/${task.id}`);
             }}
           >
               <CheckCircle2 className="w-4 h-4 mr-1" />
-            Acknowledge
+            Review & Acknowledge
           </Button>
         )}
           {canStartWork && (

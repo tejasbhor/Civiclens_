@@ -94,7 +94,20 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         commit: bool = True
     ) -> ModelType:
         """Create a new record"""
-        obj_data = obj_in.model_dump() if hasattr(obj_in, 'model_dump') else obj_in.dict()
+        # Handle Pydantic models, dictionaries, and other types
+        if hasattr(obj_in, 'model_dump'):
+            # Pydantic v2
+            obj_data = obj_in.model_dump()
+        elif hasattr(obj_in, 'dict'):
+            # Pydantic v1 or other objects with dict method
+            obj_data = obj_in.dict()
+        elif isinstance(obj_in, dict):
+            # Already a dictionary
+            obj_data = obj_in
+        else:
+            # Convert to dict if possible
+            obj_data = dict(obj_in)
+        
         db_obj = self.model(**obj_data)
         
         db.add(db_obj)
@@ -112,7 +125,19 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         commit: bool = True
     ) -> Optional[ModelType]:
         """Update a record"""
-        obj_data = obj_in.model_dump(exclude_unset=True) if hasattr(obj_in, 'model_dump') else obj_in.dict(exclude_unset=True)
+        # Handle Pydantic models, dictionaries, and other types
+        if hasattr(obj_in, 'model_dump'):
+            # Pydantic v2
+            obj_data = obj_in.model_dump(exclude_unset=True)
+        elif hasattr(obj_in, 'dict'):
+            # Pydantic v1 or other objects with dict method
+            obj_data = obj_in.dict(exclude_unset=True)
+        elif isinstance(obj_in, dict):
+            # Already a dictionary
+            obj_data = {k: v for k, v in obj_in.items() if v is not None}
+        else:
+            # Convert to dict if possible
+            obj_data = dict(obj_in)
         
         stmt = (
             update(self.model)

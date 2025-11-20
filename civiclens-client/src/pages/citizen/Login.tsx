@@ -304,7 +304,7 @@ const CitizenLogin = () => {
     try {
       // Normalize phone number before sending
       const normalizedPhone = normalizePhoneNumber(phone);
-      const response = await authService.login(normalizedPhone, password);
+      const response = await authService.login(normalizedPhone, password, 'citizen');
       await login(response.access_token, response.refresh_token);
       toast({
         title: "Login Successful!",
@@ -318,6 +318,14 @@ const CitizenLogin = () => {
           title: "Invalid Phone Number",
           description: error.message,
           variant: "destructive"
+        });
+      } else if (error.response?.data?.detail?.includes('Officer Portal')) {
+        // Portal mismatch - user is an officer trying to access citizen portal
+        toast({
+          title: "Wrong Portal",
+          description: error.response.data.detail,
+          variant: "destructive",
+          duration: 6000,
         });
       } else {
       toast({

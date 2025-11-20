@@ -15,7 +15,7 @@ class AreaAssignment(BaseModel):
     area_name = Column(String(255), nullable=False)  # Human-readable name
     area_data = Column(JSONB, nullable=False)  # Flexible area definition
     # Examples:
-    # {"type": "district", "name": "Ranchi"}
+    # {"type": "district", "name": "Navi Mumbai"}
     # {"type": "radius", "center_lat": 23.34, "center_lon": 85.31, "radius_km": 5}
     # {"type": "polygon", "coordinates": [[lat, lon], ...]}
 

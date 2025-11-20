@@ -29,10 +29,12 @@ from app.schemas.auth import (
     RefreshTokenRequest,
     PasswordResetRequest,
     PasswordResetVerify,
-    ChangePasswordRequest
+    ChangePasswordRequest,
+    PortalType
 )
 from app.schemas.user import OfficerCreate, UserProfileUpdate
 from app.crud.user import user_crud
+from app.models.user import UserRole
 from app.config import settings
 from app.core.background_tasks import (
     send_otp_sms_bg,
@@ -40,6 +42,50 @@ from app.core.background_tasks import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+# Helper function for portal type validation
+def validate_portal_access(user_role: UserRole, portal_type: PortalType) -> tuple[bool, str]:
+    """
+    Validate if a user role is allowed to access a specific portal.
+    
+    Returns:
+        tuple[bool, str]: (is_valid, error_message)
+    """
+    # Citizen portal roles
+    CITIZEN_PORTAL_ROLES = {
+        UserRole.CITIZEN,
+        UserRole.CONTRIBUTOR,
+        UserRole.MODERATOR
+    }
+    
+    # Officer portal roles
+    OFFICER_PORTAL_ROLES = {
+        UserRole.NODAL_OFFICER,
+        UserRole.AUDITOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN
+    }
+    
+    if portal_type == PortalType.CITIZEN:
+        if user_role in CITIZEN_PORTAL_ROLES:
+            return True, ""
+        else:
+            return False, (
+                f"This account ({user_role.value}) is registered as a government official. "
+                f"Please use the Officer Portal to login."
+            )
+    
+    elif portal_type == PortalType.OFFICER:
+        if user_role in OFFICER_PORTAL_ROLES:
+            return True, ""
+        else:
+            return False, (
+                f"This account ({user_role.value}) is registered as a citizen. "
+                f"Please use the Citizen Portal to login."
+            )
+    
+    return False, "Invalid portal type"
 
 
 @router.post("/request-otp", status_code=status.HTTP_200_OK)
@@ -310,6 +356,26 @@ async def login(
                 f"Try again in {settings.ACCOUNT_LOCKOUT_DURATION_MINUTES} minutes."
             )
 
+    # Validate portal access based on user role
+    is_valid, error_message = validate_portal_access(user.role, request.portal_type)
+    if not is_valid:
+        # Log portal access violation
+        await audit_logger.log_action(
+            db=db,
+            user_id=user.id,
+            action=AuditAction.LOGIN_FAILED,
+            status=AuditStatus.FAILURE,
+            details={
+                "reason": "Portal access denied",
+                "user_role": user.role.value,
+                "attempted_portal": request.portal_type.value,
+                "ip_address": http_request.client.host if http_request.client else None
+            },
+            ip_address=http_request.client.host if http_request.client else None,
+            user_agent=http_request.headers.get("user-agent")
+        )
+        raise UnauthorizedException(error_message)
+    
     # Clear failed login attempts on successful login
     await account_security.clear_failed_login(request.phone)
 

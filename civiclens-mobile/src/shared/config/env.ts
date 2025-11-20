@@ -55,9 +55,10 @@ const stagingConfig: EnvConfig = {
 };
 
 const prodConfig: EnvConfig = {
-  // Use .local hostname for automatic network discovery (works on any WiFi)
-  API_BASE_URL: 'http://JARVIS.local:8000/api/v1',
-  GRAPHQL_ENDPOINT: 'http://JARVIS.local:8000/graphql',
+  // Use IP address for direct connection (change if your IP changes)
+  // To find IP: run 'ipconfig' on Windows and look for IPv4 Address
+  API_BASE_URL: 'http://192.168.1.33:8000/api/v1',
+  GRAPHQL_ENDPOINT: 'http://192.168.1.33:8000/graphql',
   ENABLE_LOGGING: true, // Enable for testing
   ENVIRONMENT: 'production',
 };

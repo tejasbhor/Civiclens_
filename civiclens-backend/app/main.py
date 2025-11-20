@@ -10,7 +10,7 @@ import os
 from app.config import settings
 from app.core.database import init_db, close_db, close_redis, check_redis_connection, check_database_connection
 from app.core.exceptions import CivicLensException
-from app.api.v1 import auth, reports, analytics, users, departments, appeals, escalations, audit, media, feedbacks
+from app.api.v1 import auth, reports, reports_complete, analytics, users, departments, appeals, escalations, audit, media, feedbacks
 from app.api.v1.auth_extended import router as auth_extended
 from app.api.v1.sync import router as sync_router
 
@@ -44,8 +44,9 @@ async def lifespan(app: FastAPI):
         print("❌ Redis - Connection failed")
         print("⚠️  OTP functionality will not work without Redis")
     
-    # Check MinIO (optional)
+    # Check MinIO (required)
     print("\n📦 Checking MinIO connection...")
+    minio_ok = False
     try:
         from minio import Minio
         minio_client = Minio(
@@ -58,14 +59,16 @@ async def lifespan(app: FastAPI):
         bucket_exists = minio_client.bucket_exists(settings.MINIO_BUCKET)
         if bucket_exists:
             print(f"✅ MinIO - Connected (bucket '{settings.MINIO_BUCKET}' exists)")
+            minio_ok = True
         else:
             print(f"⚠️  MinIO - Connected but bucket '{settings.MINIO_BUCKET}' not found")
             print(f"   Creating bucket '{settings.MINIO_BUCKET}'...")
             minio_client.make_bucket(settings.MINIO_BUCKET)
             print(f"✅ Bucket '{settings.MINIO_BUCKET}' created")
+            minio_ok = True
     except Exception as e:
-        print(f"⚠️  MinIO - Connection failed: {str(e)}")
-        print("   File uploads will not work (optional service)")
+        print(f"❌ MinIO - Connection failed: {str(e)}")
+        print("   MinIO is required for file uploads")
     
     # Summary
     print("\n" + "=" * 60)
@@ -73,24 +76,19 @@ async def lifespan(app: FastAPI):
     print("=" * 60)
     print(f"PostgreSQL: {'✅ Ready' if db_ok else '❌ Failed'}")
     print(f"Redis:      {'✅ Ready' if redis_ok else '❌ Failed'}")
-    print(f"MinIO:      ⚠️  Optional (check logs above)")
+    print(f"MinIO:      {'✅ Ready' if minio_ok else '❌ Failed'}")
     print("=" * 60)
     
-    if not db_ok or not redis_ok:
-        print("\n⚠️  WARNING: Critical services are not available!")
-        print("   The API will start but some features will not work.")
-        print("\n   Please ensure:")
-        if not db_ok:
-            print("   - PostgreSQL is running")
-            print("   - Database credentials in .env are correct")
-        if not redis_ok:
-            print("   - Redis is running (required for OTP)")
-            print("   - Redis URL in .env is correct")
-        print("")
-    else:
-        print("\n✅ All critical services are ready!")
+    if not db_ok:
+        print("\n❌ Critical service failed. Application cannot start.")
+        return
     
-    print("\n🎉 CivicLens API startup complete!\n")
+    if not minio_ok:
+        print("\n❌ MinIO is required for file uploads. Application cannot start.")
+        return
+    
+    print("\n✅ All critical services are ready!")
+    print("\n🎉 CivicLens API startup complete!")
     
     yield
     
@@ -115,24 +113,14 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins_list,  # Fixed: Use list property instead of string
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Static file serving for media files
-media_directory = settings.MEDIA_ROOT or "./media"
-if not os.path.isabs(media_directory):
-    # Make relative paths relative to the backend directory
-    media_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), media_directory)
-
-# Create media directory if it doesn't exist
-os.makedirs(media_directory, exist_ok=True)
-
-# Mount static files
-app.mount("/media", StaticFiles(directory=media_directory), name="media")
-print(f"📁 Static media files mounted: /media -> {os.path.abspath(media_directory)}")
+# Note: Static file serving removed - using MinIO for all media files
+# All media files are now served directly from MinIO storage
 
 # Exception handlers
 @app.exception_handler(RequestValidationError)
@@ -192,6 +180,7 @@ app.include_router(auth, prefix="/api/v1")
 app.include_router(auth_extended, prefix="/api/v1")
 app.include_router(sync_router, prefix="/api/v1")
 app.include_router(reports, prefix="/api/v1")
+app.include_router(reports_complete, prefix="/api/v1")
 app.include_router(analytics, prefix="/api/v1")
 app.include_router(users, prefix="/api/v1")
 app.include_router(departments, prefix="/api/v1")

@@ -217,7 +217,7 @@ API_KEY_REVOKED
 ```json
 {
   "type": "district",
-  "name": "Ranchi"
+  "name": "Navi Mumbai"
 }
 ```
 

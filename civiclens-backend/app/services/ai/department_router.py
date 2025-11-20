@@ -1,5 +1,5 @@
 """
-Department Routing for Ranchi's 6 Departments
+Department Routing for Navi Mumbai's 6 Departments
 Matches reports to appropriate departments using category mapping and keyword matching
 """
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class DepartmentRouter:
     """
-    Route reports to one of Ranchi's 6 departments:
+    Route reports to one of Navi Mumbai's 6 departments:
     1. Public Works Department
     2. Water Supply Department
     3. Sanitation Department

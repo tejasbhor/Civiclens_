@@ -245,6 +245,30 @@ class CRUDReport(CRUDBase[Report, ReportCreate, ReportUpdate]):
             'by_category': by_category,
             'by_severity': by_severity,
         }
+    
+    async def get_user_recent_reports(
+        self,
+        db: AsyncSession,
+        user_id: int,
+        minutes: int = 5
+    ) -> List[Report]:
+        """
+        Get reports created by user in the last N minutes
+        Used for rate limiting
+        """
+        from datetime import datetime, timedelta
+        
+        cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+        
+        query = select(Report).where(
+            and_(
+                Report.user_id == user_id,
+                Report.created_at >= cutoff_time
+            )
+        )
+        
+        result = await db.execute(query)
+        return list(result.scalars().all())
 
 
 # Singleton instance

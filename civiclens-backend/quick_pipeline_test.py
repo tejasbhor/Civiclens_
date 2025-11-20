@@ -25,10 +25,10 @@ async def test_pipeline():
             severity="high",
             status=ReportStatus.RECEIVED,
             user_id=1,
-            address="Main Street, Near Hospital, Ranchi",
+            address="Main Street, Near Hospital, Navi Mumbai",
             pincode="834001",
             ward_number="15",
-            district="Ranchi",
+            district="Navi Mumbai",
             state="Jharkhand"
         )
         

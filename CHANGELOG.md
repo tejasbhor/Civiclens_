@@ -32,7 +32,7 @@ This release marks CivicLens as **production-ready** with enterprise-grade featu
   - Duplicate detection using Sentence-BERT + PostGIS
   - Category classification (8 categories) using BART
   - Severity scoring (4 levels: low/medium/high/critical)
-  - Department routing to 6 Ranchi Municipal departments
+  - Department routing to 6 Navi MumbaiMunicipal departments
   - Confidence-based auto-assignment
   - Background worker for async processing
 - **AI Worker** (`app/workers/ai_worker.py`)

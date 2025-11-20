@@ -21,7 +21,6 @@ import OfficerDashboard from "./pages/officer/Dashboard";
 import OfficerProfile from "./pages/officer/Profile";
 import Tasks from "./pages/officer/Tasks";
 import TaskDetail from "./pages/officer/TaskDetail";
-import AcknowledgeTask from "./pages/officer/AcknowledgeTask";
 import StartWork from "./pages/officer/StartWork";
 import CompleteWork from "./pages/officer/CompleteWork";
 import OfficerNotifications from "./pages/officer/Notifications";
@@ -143,14 +142,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/officer/task/:id/acknowledge"
-                  element={
-                    <ProtectedRoute requiredRole="officer">
-                      <AcknowledgeTask />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* Acknowledge action removed - now handled in TaskDetail page */}
                 <Route
                   path="/officer/task/:id/start"
                   element={

@@ -1,5 +1,6 @@
 from .auth import router as auth_router
 from .reports import router as reports_router
+from .reports_complete import router as reports_complete_router
 from .analytics import router as analytics_router
 from .users import router as users_router
 from .departments import router as departments_router
@@ -17,6 +18,7 @@ from .hold_approvals import router as hold_approvals_router
 # Expose the routers for main.py to use
 auth = auth_router
 reports = reports_router
+reports_complete = reports_complete_router
 analytics = analytics_router
 users = users_router
 departments = departments_router
@@ -31,4 +33,4 @@ notifications = notifications_router
 feedback = feedback_router
 hold_approvals = hold_approvals_router
 
-__all__ = ["auth", "reports", "analytics", "users", "departments", "appeals", "feedbacks", "escalations", "audit", "media", "tasks", "ai_insights", "notifications", "feedback", "hold_approvals"]
+__all__ = ["auth", "reports", "reports_complete", "analytics", "users", "departments", "appeals", "feedbacks", "escalations", "audit", "media", "tasks", "ai_insights", "notifications", "feedback", "hold_approvals"]

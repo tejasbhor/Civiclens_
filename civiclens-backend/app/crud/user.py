@@ -372,20 +372,59 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         )
         total_reports = reports_result.scalar() or 0
 
+        # Count reports by status for citizens
+        from app.models.report import ReportStatus
+        
+        # In progress reports (all active statuses)
+        in_progress_result = await db.execute(
+            select(func.count(Report.id)).where(
+                and_(
+                    Report.user_id == user_id,
+                    Report.status.in_([
+                        ReportStatus.RECEIVED,
+                        ReportStatus.PENDING_CLASSIFICATION,
+                        ReportStatus.CLASSIFIED,
+                        ReportStatus.ASSIGNED_TO_DEPARTMENT,
+                        ReportStatus.ASSIGNED_TO_OFFICER,
+                        ReportStatus.ACKNOWLEDGED,
+                        ReportStatus.IN_PROGRESS,
+                        ReportStatus.PENDING_VERIFICATION,
+                        ReportStatus.ON_HOLD
+                        # Note: REOPENED status exists in enum but not in database yet
+                    ])
+                )
+            )
+        )
+        in_progress_reports = in_progress_result.scalar() or 0
+
+        # Resolved reports (resolved + closed)
+        resolved_result = await db.execute(
+            select(func.count(Report.id)).where(
+                and_(
+                    Report.user_id == user_id,
+                    Report.status.in_([ReportStatus.RESOLVED, ReportStatus.CLOSED])
+                )
+            )
+        )
+        resolved_reports = resolved_result.scalar() or 0
+
         # Resolved tasks by user (if officer)
         resolved_tasks_result = await db.execute(
             select(func.count(Task.id)).where(
                 and_(Task.assigned_to == user_id, Task.status == TaskStatus.RESOLVED)
             )
         )
-        reports_resolved = resolved_tasks_result.scalar() or 0
+        tasks_resolved = resolved_tasks_result.scalar() or 0
 
         return {
             "reputation_score": user.reputation_score,
             "total_reports": total_reports,
+            "in_progress_reports": in_progress_reports,
+            "resolved_reports": resolved_reports,
+            "active_reports": in_progress_reports,  # Alias for compatibility
             "total_validations": user.total_validations,
             "helpful_validations": user.helpful_validations,
-            "reports_resolved": reports_resolved,
+            "tasks_resolved": tasks_resolved,  # For officers
             "can_promote_to_contributor": user.should_promote_to_contributor(),
             "next_milestone": self.get_next_milestone(user)
         }

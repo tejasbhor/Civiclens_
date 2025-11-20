@@ -15,9 +15,10 @@ from app.schemas.report import (
 )
 from app.schemas.common import PaginatedResponse
 from app.models.user import User
-from app.models.report import ReportStatus, ReportSeverity
+from app.models.report import Report, ReportStatus, ReportSeverity
 from app.crud.report import report_crud
 from app.crud.user import user_crud
+from app.core.rate_limiter import rate_limiter
 from app.config import settings
 from pydantic import BaseModel, Field
 from app.models.task import Task, TaskStatus
@@ -249,7 +250,7 @@ async def create_report(
         while retry_count < max_retries:
             try:
                 # Generate report_number atomically using Redis
-                city = settings.CITY_CODE or "RNC"
+                city = settings.CITY_CODE or "NMC"
                 year = datetime.utcnow().year
                 redis = await get_redis()
                 
@@ -419,6 +420,10 @@ async def create_report(
     except Exception as e:
         logger.error(f"Unexpected error in report creation: {str(e)}")
         logger.error(f"Error type: {type(e).__name__}")
+        
+        # Get user_id before rollback to avoid detached instance error
+        user_id = current_user.id
+        
         await db.rollback()
         
         await audit_logger.log(
@@ -431,7 +436,7 @@ async def create_report(
             metadata={
                 "error": str(e),
                 "error_type": type(e).__name__,
-                "user_id": current_user.id,
+                "user_id": user_id,  # Use pre-fetched user_id
                 "report_data": report_data.model_dump()
             },
             resource_type="report",
@@ -632,12 +637,20 @@ async def get_map_data(
 
 @router.get("/my-reports", response_model=list[ReportResponse])
 async def get_my_reports(
+    request: Request,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all reports by current user"""
+    """Get all reports by current user with rate limiting"""
+    # Rate limit: 30 requests per minute per user
+    await rate_limiter.check_rate_limit(
+        key=f"my_reports:{current_user.id}",
+        max_requests=30,
+        window_seconds=60
+    )
+    
     reports = await report_crud.get_by_user(db, current_user.id, skip=skip, limit=limit)
     return reports
 
@@ -1424,13 +1437,34 @@ async def reject_resolution(
 @router.post("/{report_id}/add-update", response_model=ReportResponse)
 async def add_task_update(
     report_id: int,
-    update_text: str = Form(..., description="Progress update text"),
+    update_text: str = Form(..., description="Progress update text (minimum 10 characters)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Officer adds progress update to task
+    
+    Production Features:
+    - Input validation (minimum 10 characters, maximum 1000 characters)
+    - Authorization checks (only assigned officer)
+    - Timestamped notes
+    - Audit trail via task notes
     """
+    logger.info(f"Officer {current_user.id} adding update to report {report_id}")
+    
+    # Validate input
+    if not update_text or len(update_text.strip()) < 10:
+        raise ValidationException(
+            "Update text must be at least 10 characters long"
+        )
+    
+    if len(update_text) > 1000:
+        raise ValidationException(
+            "Update text cannot exceed 1000 characters"
+        )
+    
+    update_text = update_text.strip()
+    
     report = await report_crud.get(db, report_id)
     
     if not report:
@@ -1450,6 +1484,8 @@ async def add_task_update(
     
     await db.commit()
     await db.refresh(report)
+    
+    logger.info(f"Progress update added to report {report_id} by officer {current_user.id}")
     
     return report
 
@@ -2345,3 +2381,56 @@ async def get_all_officers_workload(
             "total_officers": len(all_officers),
             "officers": all_officers
         }
+
+
+@router.get("/user/{user_id}/stats")
+async def get_user_report_stats(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get report statistics for a specific user
+    Returns counts for issues raised, in progress, and resolved
+    """
+    # Allow users to access their own stats, or admins to access any stats
+    # Note: current_user.id might be int, user_id from path is also int
+    if int(current_user.id) != int(user_id):
+        # Trying to access someone else's stats - check if admin
+        try:
+            if not current_user.can_access_admin_portal():
+                raise ForbiddenException(f"Access denied. User {current_user.id} cannot access stats for user {user_id}")
+        except AttributeError:
+            # If can_access_admin_portal doesn't exist, deny access
+            raise ForbiddenException("Access denied")
+    
+    # Count reports by status
+    from sqlalchemy import func, case
+    
+    result = await db.execute(
+        select(
+            func.count().label('total'),
+            func.sum(case((Report.status == ReportStatus.RECEIVED, 1), else_=0)).label('issues_raised'),
+            func.sum(case((Report.status.in_([
+                ReportStatus.CLASSIFIED,
+                ReportStatus.ASSIGNED_TO_DEPARTMENT,
+                ReportStatus.ASSIGNED_TO_OFFICER,
+                ReportStatus.ACKNOWLEDGED,
+                ReportStatus.IN_PROGRESS,
+                ReportStatus.PENDING_VERIFICATION
+            ]), 1), else_=0)).label('in_progress'),
+            func.sum(case((Report.status.in_([
+                ReportStatus.RESOLVED,
+                ReportStatus.CLOSED
+            ]), 1), else_=0)).label('resolved')
+        ).where(Report.user_id == user_id)
+    )
+    
+    stats = result.first()
+    
+    return {
+        "issuesRaised": int(stats.issues_raised or 0),
+        "inProgress": int(stats.in_progress or 0),
+        "resolved": int(stats.resolved or 0),
+        "total": int(stats.total or 0)
+    }

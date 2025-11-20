@@ -68,7 +68,7 @@ class User(BaseModel):
     # ============ Area-Based Moderation ============
     # Moderators are assigned to specific areas
     moderation_areas = Column(JSONB, nullable=True)  # List of area polygons or district names
-    # Example: {"districts": ["Ranchi", "Jamshedpur"], "radius_km": 5}
+    # Example: {"districts": ["Navi Mumbai", "Jamshedpur"], "radius_km": 5}
 
     # Location (for area-based features)
     primary_latitude = Column(Float, nullable=True)

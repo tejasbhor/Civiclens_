@@ -1,6 +1,6 @@
 """
 AI Configuration - Mapped to CivicLens Backend Schema
-Customized for Ranchi Municipal Corporation
+Customized for Navi Mumbai Municipal Corporation
 """
 
 import os
@@ -14,7 +14,7 @@ class AIConfig:
     ZERO_SHOT_MODEL = "facebook/bart-large-mnli"
     SENTENCE_TRANSFORMER_MODEL = "all-MiniLM-L6-v2"
     MODEL_CACHE_DIR = os.path.join(os.getcwd(), "models", "cache")
-    AI_MODEL_VERSION = "v1.0.0-civiclens-ranchi"
+    AI_MODEL_VERSION = "v1.0.0-civiclens-navimumbai"
     
     # Category Mapping (Matches your ReportCategory enum exactly)
     # IMPROVED: More specific, descriptive labels for better zero-shot classification

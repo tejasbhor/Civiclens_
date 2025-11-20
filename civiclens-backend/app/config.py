@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import List, Optional
 from functools import lru_cache
 
@@ -9,7 +10,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENVIRONMENT: str = "production"
-    CITY_CODE: str = "RNC"
+    CITY_CODE: str = "NMC"
     APP_BASE_URL: Optional[str] = None
     
     # Database
@@ -27,15 +28,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     
-    # MinIO Storage
-    MINIO_ENDPOINT: Optional[str] = None
-    MINIO_ACCESS_KEY: Optional[str] = None
-    MINIO_SECRET_KEY: Optional[str] = None
+    # MinIO Storage (Required)
+    MINIO_ENDPOINT: str = Field(..., description="MinIO endpoint (required)")
+    MINIO_ACCESS_KEY: str = Field(..., description="MinIO access key (required)")
+    MINIO_SECRET_KEY: str = Field(..., description="MinIO secret key (required)")
     MINIO_BUCKET: str = "civiclens-media"
     MINIO_USE_SSL: bool = False
-    
-    # Local Media Storage (fallback)
-    MEDIA_ROOT: str = "./media"
     
     # OTP
     OTP_EXPIRY_MINUTES: int = 5

@@ -69,11 +69,20 @@ async def close_redis():
 async def init_db():
     """Initialize database tables"""
     async with engine.begin() as conn:
+        # Install PostGIS extension if needed
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+            print("✅ PostGIS extension ready")
+        except Exception as e:
+            print(f"⚠️  PostGIS extension: {e}")
+        
         # Import all models to register them
         from app.models import (
             user, department, report, task, media, 
             area_assignment, role_history, appeal, escalation,
-            report_status_history, session, sync, audit_log
+            report_status_history, session, sync, audit_log,
+            notification, feedback
         )
         
         # Create all tables

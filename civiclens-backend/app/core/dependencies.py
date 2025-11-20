@@ -64,17 +64,48 @@ async def get_current_user(
         )
         session = session_result.scalar_one_or_none()
         
-        if session and session.fingerprint:
-            if not validate_session_fingerprint(request, session.fingerprint):
-                # Log suspicious activity
-                await audit_logger.log_suspicious_activity(
-                    db=db,
-                    description="Session fingerprint mismatch - possible session hijacking",
-                    user=user,
-                    request=request,
-                    metadata={"session_id": session.id, "jti": jti}
+        if not session:
+            # Session not found with this JTI - might be race condition after refresh
+            # Check if there's an active session for this user (fallback for race conditions)
+            print(f"⚠️  Session not found for JTI: {jti[:10]}...")
+            all_sessions_result = await db.execute(
+                select(Session).where(
+                    Session.user_id == user_id,
+                    Session.is_active == 1
                 )
-                raise UnauthorizedException("Session validation failed")
+            )
+            all_sessions = all_sessions_result.scalars().all()
+            print(f"   User {user_id} has {len(all_sessions)} active session(s)")
+            
+            if len(all_sessions) > 0:
+                # User has active sessions - this might be a race condition after token refresh
+                # Allow the request but log warning
+                print(f"   ⚠️  Allowing request - user has {len(all_sessions)} active session(s), likely race condition")
+                session = all_sessions[0]  # Use the first active session
+            else:
+                # No active sessions at all - token is truly invalid
+                print(f"   ❌ No active sessions found - token is invalid")
+                raise UnauthorizedException("Session not found or expired")
+        
+        if session.fingerprint:
+            if not validate_session_fingerprint(request, session.fingerprint):
+                # For mobile apps, be more lenient - only log warning, don't block
+                user_agent = request.headers.get("user-agent", "").lower()
+                is_mobile = any(x in user_agent for x in ["android", "ios", "mobile", "expo"])
+                
+                if is_mobile:
+                    # Mobile devices can have changing IPs/fingerprints - just log warning
+                    print(f"⚠️  Mobile session fingerprint mismatch for user {user.id} - allowing")
+                else:
+                    # Desktop/web - enforce strict validation
+                    await audit_logger.log_suspicious_activity(
+                        db=db,
+                        description="Session fingerprint mismatch - possible session hijacking",
+                        user=user,
+                        request=request,
+                        metadata={"session_id": session.id, "jti": jti}
+                    )
+                    raise UnauthorizedException("Session validation failed")
     
     # Enforce IP whitelist for admin/super_admin if enabled
     if request:

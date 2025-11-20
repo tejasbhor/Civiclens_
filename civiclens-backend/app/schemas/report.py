@@ -34,6 +34,12 @@ class ReportCreateInternal(ReportBase):
     report_number: Optional[str] = None
     category: Optional[str] = Field(None, description="Report category - must be one of the valid categories")
     sub_category: Optional[str] = None
+    landmark: Optional[str] = None
+    is_public: Optional[bool] = True
+    is_sensitive: Optional[bool] = False
+    status: Optional[ReportStatus] = ReportStatus.RECEIVED
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
     @field_validator('category')
     @classmethod

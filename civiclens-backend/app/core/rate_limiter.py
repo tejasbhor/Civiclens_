@@ -59,15 +59,28 @@ class RateLimiter:
         request_count = await redis.zcard(rate_limit_key)
         
         if request_count >= max_requests:
-            # Get oldest request time to calculate retry-after
-            oldest = await redis.zrange(rate_limit_key, 0, 0, withscores=True)
-            if oldest:
-                oldest_timestamp = oldest[0][1]
-                retry_after = int(oldest_timestamp + window_seconds - current_time.timestamp())
-                raise ValidationException(
-                    f"Rate limit exceeded for {identifier}. "
-                    f"Try again in {retry_after} seconds."
-                )
+            # Rate limit exceeded - calculate retry time without complex Redis operations
+            # Use a simple fallback approach to avoid async generator issues
+            retry_after = window_seconds  # Simple fallback
+            
+            try:
+                # Try to get the oldest timestamp for more accurate retry time
+                # Use zscore to get the oldest item's score instead of zrange
+                oldest_member = await redis.zrange(rate_limit_key, 0, 0)
+                if oldest_member:
+                    # Get the score (timestamp) of the oldest member
+                    oldest_timestamp = await redis.zscore(rate_limit_key, oldest_member[0])
+                    if oldest_timestamp:
+                        retry_after = max(1, int(oldest_timestamp + window_seconds - current_time.timestamp()))
+            except Exception as e:
+                # If Redis operations fail, use the fallback retry time
+                import logging
+                logging.warning(f"Rate limiter Redis error (using fallback): {e}")
+            
+            raise ValidationException(
+                f"Rate limit exceeded for {identifier}. "
+                f"Try again in {retry_after} seconds."
+            )
         
         # Add current request
         await redis.zadd(

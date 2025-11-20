@@ -3,7 +3,7 @@
     {
       "id": 1,
       "title": "Big pothole on Main Road near Railway Station",
-      "description": "There is a large pothole on Main Road near Ranchi Railway Station causing traffic problems. The road is damaged and needs immediate repair. Many vehicles are getting damaged.",
+      "description": "There is a large pothole on Main Road near Navi MumbaiRailway Station causing traffic problems. The road is damaged and needs immediate repair. Many vehicles are getting damaged.",
       "expected_category": "roads",
       "expected_severity": "high",
       "expected_department": "Public Works Department",
@@ -133,7 +133,7 @@
     {
       "id": 14,
       "title": "Broken footpath near bus stand",
-      "description": "The footpath near Ranchi bus stand is completely broken. People are having difficulty walking. Repair needed urgently.",
+      "description": "The footpath near Navi Mumbaibus stand is completely broken. People are having difficulty walking. Repair needed urgently.",
       "expected_category": "roads",
       "expected_severity": "medium",
       "expected_department": "Public Works Department",
@@ -163,7 +163,7 @@
     {
       "id": 17,
       "title": "Dim streetlight near college",
-      "description": "The streetlight near Ranchi College is very dim. The bulb needs replacement for proper illumination.",
+      "description": "The streetlight near Navi MumbaiCollege is very dim. The bulb needs replacement for proper illumination.",
       "expected_category": "streetlight",
       "expected_severity": "low",
       "expected_department": "Electrical Department",
@@ -325,7 +325,7 @@
     {
       "id": 33,
       "title": "Urgent: Major accident risk on highway",
-      "description": "There is a huge pothole on NH-33 highway near Ranchi. Multiple accidents have already occurred. This is a life-threatening situation requiring immediate action.",
+      "description": "There is a huge pothole on NH-33 highway near Navi Mumbai. Multiple accidents have already occurred. This is a life-threatening situation requiring immediate action.",
       "expected_category": "roads",
       "expected_severity": "high",
       "expected_department": "Public Works Department",

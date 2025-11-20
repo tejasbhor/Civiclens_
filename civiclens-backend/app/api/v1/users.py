@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
+from redis.asyncio import Redis
 from app.core.database import get_db, get_redis
 from app.config import settings
 from app.core.dependencies import get_current_user, require_admin
@@ -9,6 +10,8 @@ from app.schemas.user import (
     UserResponse, UserDetailedResponse, UserStatsResponse,
     UserProfileUpdate, RoleChangeRequest, AreaAssignmentCreate
 )
+from pydantic import BaseModel
+from typing import Dict, Any
 from app.schemas.common import PaginatedResponse
 from app.models.user import User, UserRole
 from app.models.department import Department
@@ -19,6 +22,7 @@ from app.models.audit_log import AuditAction, AuditStatus
 import logging
 from app.core.background_tasks import send_email_notification_bg
 from app.models.task import Task, TaskStatus
+from app.models.report import Report, ReportStatus
 from sqlalchemy import select, func, and_
 from pydantic import BaseModel, Field
 
@@ -44,6 +48,290 @@ async def update_my_profile(
     updated_user = await user_crud.update_profile(db, current_user.id, profile_data)
 
     return updated_user
+
+
+# =============================
+# Officer Profile Management
+# =============================
+
+class OfficerProfileResponse(BaseModel):
+    id: int
+    full_name: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    employee_id: str | None = None
+    department: str | None = None
+    designation: str | None = None
+    zone_assigned: str | None = None
+    bio: str | None = None
+    preferred_language: str = "en"
+    notification_preferences: Dict[str, Any] = {
+        "task_assignments": True,
+        "urgent_reports": True,
+        "system_updates": False,
+        "performance_reports": True,
+    }
+    avatar_url: str | None = None
+    joined_date: str | None = None
+    last_active: str | None = None
+    total_tasks_completed: int = 0
+    completion_rate: int = 0
+    average_resolution_time: float = 0.0
+    performance_rating: float = 0.0
+
+
+class OfficerProfileUpdate(BaseModel):
+    bio: str | None = None
+    preferred_language: str | None = None
+    notification_preferences: Dict[str, Any] | None = None
+
+
+@router.get("/me/officer-profile", response_model=OfficerProfileResponse)
+async def get_my_officer_profile(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get current officer's profile with performance stats"""
+    # Ensure user is an officer
+    if current_user.role not in [UserRole.NODAL_OFFICER, UserRole.ADMIN, UserRole.AUDITOR]:
+        raise ForbiddenException("Officer access required")
+    
+    # Get department name if available
+    dept_name = None
+    if current_user.department_id:
+        dept_result = await db.execute(
+            select(Department.name).where(Department.id == current_user.department_id)
+        )
+        dept_name = dept_result.scalar()
+    
+    # Get officer workload/performance stats
+    from app.services.report_service import ReportService
+    report_service = ReportService(db)
+    workload = await report_service.workload_balancer.get_officer_workload(current_user.id)
+    
+    # Get notification preferences from Redis
+    redis = await get_redis()
+    prefs_key = f"officer_notifications:{current_user.id}"
+    notification_prefs = await redis.hgetall(prefs_key) or {}
+    
+    # Convert Redis bytes to proper format
+    notification_preferences = {
+        "task_assignments": notification_prefs.get(b"task_assignments", b"true").decode() == "true",
+        "urgent_reports": notification_prefs.get(b"urgent_reports", b"true").decode() == "true",
+        "system_updates": notification_prefs.get(b"system_updates", b"false").decode() == "true",
+        "performance_reports": notification_prefs.get(b"performance_reports", b"true").decode() == "true",
+    }
+    
+    # Get bio and language preferences from Redis
+    profile_key = f"officer_profile:{current_user.id}"
+    profile_data = await redis.hgetall(profile_key) or {}
+    
+    bio = profile_data.get(b"bio", b"").decode() if profile_data.get(b"bio") else None
+    preferred_language = profile_data.get(b"preferred_language", b"en").decode()
+    
+    # Calculate performance metrics
+    active_reports = workload.get("active_reports", 0) or 0
+    resolved_reports = workload.get("resolved_reports", 0) or 0
+    total_reports = active_reports + resolved_reports
+    completion_rate = int((resolved_reports / total_reports * 100)) if total_reports > 0 else 0
+    avg_resolution_time = workload.get("avg_resolution_time_days", 0.0) or 0.0
+    
+    # Simple performance rating calculation (0-5 scale)
+    performance_rating = 0.0
+    if completion_rate >= 90:
+        performance_rating = 5.0
+    elif completion_rate >= 80:
+        performance_rating = 4.0
+    elif completion_rate >= 70:
+        performance_rating = 3.5
+    elif completion_rate >= 60:
+        performance_rating = 3.0
+    elif completion_rate >= 50:
+        performance_rating = 2.5
+    else:
+        performance_rating = 2.0
+    
+    return OfficerProfileResponse(
+        id=current_user.id,
+        full_name=current_user.full_name,
+        phone=current_user.phone,
+        email=current_user.email,
+        employee_id=current_user.employee_id,
+        department=dept_name,
+        designation="Field Officer",  # Default for now
+        zone_assigned="Zone A - Central Navi Mumbai",  # Default for now
+        bio=bio,
+        preferred_language=preferred_language,
+        notification_preferences=notification_preferences,
+        avatar_url=None,  # Not implemented yet
+        joined_date=current_user.created_at.isoformat() if current_user.created_at else None,
+        last_active=current_user.updated_at.isoformat() if current_user.updated_at else None,
+        total_tasks_completed=resolved_reports,
+        completion_rate=completion_rate,
+        average_resolution_time=float(avg_resolution_time),
+        performance_rating=performance_rating
+    )
+
+
+@router.get("/me/debug")
+async def debug_user_info(
+    current_user: User = Depends(get_current_user)
+):
+    """Debug endpoint to check user role and authentication"""
+    return {
+        "user_id": current_user.id,
+        "role": current_user.role,
+        "role_type": type(current_user.role).__name__,
+        "role_value": current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
+        "is_active": current_user.is_active,
+        "phone": current_user.phone,
+        "full_name": current_user.full_name
+    }
+
+
+@router.get("/me/officer-stats")
+async def get_officer_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get officer dashboard statistics
+    """
+    # Verify user is an officer
+    # Handle both uppercase and lowercase role values for compatibility
+    allowed_roles = ["NODAL_OFFICER", "ADMIN", "AUDITOR", "nodal_officer", "admin", "auditor"]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied. Officer role required. Current role: {current_user.role}"
+        )
+    
+    try:
+        # Get task statistics for the officer
+        from app.crud.task import task_crud
+        
+        # Count tasks by status
+        total_tasks = await task_crud.count_by_officer(db, current_user.id)
+        assigned_tasks = await task_crud.count_by_officer_and_status(db, current_user.id, "assigned")
+        in_progress_tasks = await task_crud.count_by_officer_and_status(db, current_user.id, "in_progress")
+        completed_tasks = await task_crud.count_by_officer_and_status(db, current_user.id, "resolved")
+        on_hold_tasks = await task_crud.count_by_officer_and_status(db, current_user.id, "on_hold")
+        
+        # Calculate overdue tasks (created more than 48 hours ago and not completed)
+        from datetime import datetime, timedelta
+        overdue_cutoff = datetime.utcnow() - timedelta(hours=48)
+        overdue_tasks = await task_crud.count_overdue_by_officer(db, current_user.id, overdue_cutoff)
+        
+        # Calculate completion rate
+        completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+        
+        # Calculate average resolution time (in hours)
+        avg_resolution_time = await task_crud.get_avg_resolution_time(db, current_user.id)
+        
+        return {
+            "total_tasks": total_tasks,
+            "assigned_tasks": assigned_tasks,
+            "in_progress_tasks": in_progress_tasks,
+            "completed_tasks": completed_tasks,
+            "on_hold_tasks": on_hold_tasks,
+            "overdue_tasks": overdue_tasks,
+            "completion_rate": round(completion_rate, 1),
+            "avg_resolution_time": round(avg_resolution_time, 1) if avg_resolution_time else 0,
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get officer stats for user {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve officer statistics"
+        )
+
+
+@router.get("/me/officer-location")
+async def get_officer_location(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get officer's assigned zone location
+    """
+    # Verify user is an officer
+    # Handle both uppercase and lowercase role values for compatibility
+    allowed_roles = ["NODAL_OFFICER", "ADMIN", "AUDITOR", "nodal_officer", "admin", "auditor"]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied. Officer role required. Current role: {current_user.role}"
+        )
+    
+    try:
+        # Get officer's zone assignment from profile
+        from app.crud import user as user_crud
+        
+        # For now, return default Navi Mumbailocation
+        # In production, this would be based on officer's actual zone assignment
+        return {
+            "latitude": 23.3441,
+            "longitude": 85.3096,
+            "address": "Navi Mumbai, Kharghar",
+            "zone_name": "Zone A - Central Navi Mumbai"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get officer location for user {current_user.id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve officer location"
+        )
+
+
+@router.put("/me/officer-profile", response_model=dict)
+async def update_my_officer_profile(
+    profile_data: OfficerProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis)
+):
+    """Update current officer's profile (editable fields only)"""
+    # Ensure user is an officer
+    if current_user.role not in [UserRole.NODAL_OFFICER, UserRole.ADMIN, UserRole.AUDITOR]:
+        raise ForbiddenException("Officer access required")
+    
+    redis = await get_redis()
+    
+    # Update profile data in Redis
+    if profile_data.bio is not None or profile_data.preferred_language is not None:
+        profile_key = f"officer_profile:{current_user.id}"
+        profile_updates = {}
+        
+        if profile_data.bio is not None:
+            profile_updates["bio"] = profile_data.bio
+        
+        if profile_data.preferred_language is not None:
+            profile_updates["preferred_language"] = profile_data.preferred_language
+        
+        if profile_updates:
+            await redis.hset(profile_key, mapping=profile_updates)
+    
+    # Update notification preferences in Redis
+    if profile_data.notification_preferences is not None:
+        prefs_key = f"officer_notifications:{current_user.id}"
+        prefs_updates = {}
+        
+        for key, value in profile_data.notification_preferences.items():
+            prefs_updates[key] = "true" if value else "false"
+        
+        if prefs_updates:
+            await redis.hset(prefs_key, mapping=prefs_updates)
+    
+    return {
+        "message": "Officer profile updated successfully",
+        "updated_fields": {
+            "bio": profile_data.bio is not None,
+            "preferred_language": profile_data.preferred_language is not None,
+            "notification_preferences": profile_data.notification_preferences is not None
+        }
+    }
 
 
 @router.get("/me/stats", response_model=UserStatsResponse)
@@ -298,7 +586,7 @@ async def get_all_officers_stats(
         officer_stats.append(OfficerStatsResponse(
             user_id=officer.id,
             full_name=officer.full_name,
-            email=officer.email or f"officer{officer.id}@ranchi.gov.in",  # Ensure email is not None
+            email=officer.email or f"officer{officer.id}@Navi Mumbai.gov.in",  # Ensure email is not None
             phone=officer.phone,
             employee_id=officer.employee_id,
             department_id=officer.department_id,
@@ -354,7 +642,7 @@ async def get_user_stats_detailed(
     return OfficerStatsResponse(
         user_id=user.id,
         full_name=user.full_name,
-        email=user.email or f"officer{user.id}@ranchi.gov.in",  # Ensure email is not None
+        email=user.email or f"officer{user.id}@Navi Mumbai.gov.in",  # Ensure email is not None
         phone=user.phone,
         employee_id=user.employee_id,
         department_id=user.department_id,

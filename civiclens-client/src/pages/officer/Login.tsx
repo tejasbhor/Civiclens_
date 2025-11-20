@@ -140,8 +140,8 @@ const OfficerLogin = () => {
     try {
       setLoading(true);
       
-      // Call authService.login to get tokens
-      const response = await authService.login(normalizedPhone, password);
+      // Call authService.login to get tokens with officer portal type
+      const response = await authService.login(normalizedPhone, password, 'officer');
       
       // Pass tokens to AuthContext login - this will fetch user data
       await login(response.access_token, response.refresh_token);
@@ -164,25 +164,59 @@ const OfficerLogin = () => {
     } catch (error: any) {
       let errorMessage = "Invalid credentials. Please verify your phone number and password and try again.";
       
-      if (error.response?.status === 401) {
+      if (error.response?.data?.detail?.includes('Citizen Portal')) {
+        // Portal mismatch - user is a citizen trying to access officer portal
+        errorMessage = error.response.data.detail;
+        toast({
+          title: "Wrong Portal",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 6000,
+        });
+      } else if (error.response?.status === 401) {
         errorMessage = error.response?.data?.detail || "Invalid phone number or password. Please check your credentials and try again.";
         setPasswordError("Invalid password");
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
       } else if (error.response?.status === 429) {
         errorMessage = "Too many login attempts. Please wait a few minutes before trying again.";
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
       } else if (error.response?.status === 423) {
         errorMessage = "Your account has been temporarily locked. Please contact your administrator for assistance.";
+        toast({
+          title: "Account Locked",
+          description: errorMessage,
+          variant: "destructive"
+        });
       } else if (error.response?.status === 422) {
         errorMessage = "Invalid phone number format. Please enter a valid phone number.";
         setPhoneError("Invalid phone number format");
+        toast({
+          title: "Validation Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
       } else if (error.message === 'Network Error' || error.isNetworkError) {
         errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+        toast({
+          title: "Connection Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
       }
-      
-      toast({
-        title: "Login Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
