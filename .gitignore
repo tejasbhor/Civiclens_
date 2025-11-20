@@ -55,10 +55,14 @@ logs/
 *.sqlite3
 
 # Media files (local storage)
-media/
+# Only block backend media uploads, not frontend source code
+/media/
 uploads/
 civiclens-backend/media/
-# Exception: Allow media service files in mobile app
+# Exceptions: Allow frontend media components
+!civiclens-admin/src/components/media/
+!civiclens-client/src/components/media/
+!civiclens-mobile/src/components/media/
 !civiclens-mobile/src/**/media/
 
 # Testing
