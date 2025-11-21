@@ -2,43 +2,87 @@
   "test_complaints": [
     {
       "id": 1,
-      "title": "Big pothole on Main Road near Railway Station",
-      "description": "There is a large pothole on Main Road near Navi MumbaiRailway Station causing traffic problems. The road is damaged and needs immediate repair. Many vehicles are getting damaged.",
+      "title": "Big pothole on Palm Beach Road near Vashi Railway Station",
+      "description": "There is a large pothole on Palm Beach Road near Vashi Railway Station causing traffic problems. The road is damaged and needs immediate repair. Many vehicles are getting damaged.",
+      "latitude": 19.0728,
+      "longitude": 73.0016,
+      "address": "Palm Beach Road, Vashi, Navi Mumbai, 400703",
+      "ward_number": "15",
+      "pincode": "400703",
+      "landmark": "Near Vashi Railway Station",
       "expected_category": "roads",
       "expected_severity": "high",
       "expected_department": "Public Works Department",
       "expected_confidence": ">0.70",
-      "keywords_present": ["pothole", "road", "damaged", "repair"]
+      "keywords_present": ["pothole", "road", "damaged", "repair"],
+      "image_requirements": [
+        "pothole_closeup.jpg",
+        "pothole_wide_angle.jpg",
+        "damaged_vehicle_tire.jpg"
+      ]
     },
     {
       "id": 2,
-      "title": "Water pipeline burst on Station Road",
-      "description": "Water pipe has burst near Station Road. Water is leaking continuously and flooding the street. Urgent repair needed.",
+      "title": "Water pipeline burst on Belapur Station Road",
+      "description": "Water pipe has burst near Belapur Station Road. Water is leaking continuously and flooding the street. Urgent repair needed.",
+      "latitude": 19.0176,
+      "longitude": 73.0322,
+      "address": "Station Road, CBD Belapur, Navi Mumbai, 400614",
+      "ward_number": "28",
+      "pincode": "400614",
+      "landmark": "Near CBD Belapur Railway Station",
       "expected_category": "water",
       "expected_severity": "high",
       "expected_department": "Water Supply Department",
       "expected_confidence": ">0.75",
-      "keywords_present": ["water", "pipe", "burst", "leaking"]
+      "keywords_present": ["water", "pipe", "burst", "leaking"],
+      "image_requirements": [
+        "water_leak_closeup.jpg",
+        "flooded_street.jpg",
+        "burst_pipe_detail.jpg"
+      ]
     },
     {
       "id": 3,
-      "title": "Garbage not collected for 5 days",
-      "description": "Garbage has not been collected from our area for the past 5 days. The dustbin is overflowing and creating hygiene issues. Please send garbage collection vehicle.",
+      "title": "Garbage not collected for 5 days in Kharghar",
+      "description": "Garbage has not been collected from our area in Kharghar for the past 5 days. The dustbin is overflowing and creating hygiene issues. Please send garbage collection vehicle.",
+      "latitude": 19.0410,
+      "longitude": 73.0683,
+      "address": "Sector 15, Kharghar, Navi Mumbai, 410210",
+      "ward_number": "42",
+      "pincode": "410210",
+      "landmark": "Near Kharghar Plaza",
       "expected_category": "sanitation",
       "expected_severity": "high",
       "expected_department": "Sanitation Department",
       "expected_confidence": ">0.70",
-      "keywords_present": ["garbage", "collection", "dustbin", "overflowing"]
+      "keywords_present": ["garbage", "collection", "dustbin", "overflowing"],
+      "image_requirements": [
+        "overflowing_dustbin.jpg",
+        "garbage_pile.jpg",
+        "area_overview.jpg"
+      ]
     },
     {
       "id": 4,
-      "title": "Streetlight not working in Circular Road",
-      "description": "The streetlight near Circular Road is not working for the past week. The area becomes very dark at night creating safety issues.",
+      "title": "Streetlight not working in Nerul Sector 48",
+      "description": "The streetlight near Nerul Sector 48 is not working for the past week. The area becomes very dark at night creating safety issues.",
+      "latitude": 19.0330,
+      "longitude": 73.0196,
+      "address": "Sector 48, Nerul, Navi Mumbai, 400706",
+      "ward_number": "22",
+      "pincode": "400706",
+      "landmark": "Near Nerul Market",
       "expected_category": "streetlight",
       "expected_severity": "medium",
       "expected_department": "Electrical Department",
       "expected_confidence": ">0.75",
-      "keywords_present": ["streetlight", "not working", "dark", "night"]
+      "keywords_present": ["streetlight", "not working", "dark", "night"],
+      "image_requirements": [
+        "dark_street_night.jpg",
+        "non_working_streetlight.jpg",
+        "area_view.jpg"
+      ]
     },
     {
       "id": 5,

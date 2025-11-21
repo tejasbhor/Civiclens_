@@ -22,11 +22,13 @@ export const colors = {
   infoText: '#FFFFFF',
 
   // Neutral colors
-  background: '#FFFFFF',
+  background: '#F8FAFC',
   backgroundSecondary: '#F5F7FA',
   backgroundTertiary: '#F3F4F6',
+  surface: '#FFFFFF',
 
   text: '#1E293B',
+  textPrimary: '#1E293B',
   textSecondary: '#64748B',
   textTertiary: '#94A3B8',
   textDisabled: '#CBD5E1',

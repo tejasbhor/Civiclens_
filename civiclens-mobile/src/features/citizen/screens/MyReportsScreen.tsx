@@ -28,6 +28,7 @@ import type { ReportsStackParamList } from '@/navigation/CitizenTabNavigator';
 import { TopNavbar } from '@shared/components';
 import { getContentContainerStyle } from '@shared/utils/screenPadding';
 import { submissionQueue, QueueStatus } from '@shared/services/queue/submissionQueue';
+import { getMediaUrl } from '@shared/utils/mediaUtils';
 
 interface ReportStats {
   total: number;
@@ -632,28 +633,6 @@ export const MyReportsScreen: React.FC = () => {
       </ScrollView>
     </View>
   );
-
-  // Helper function to get full media URL
-  const getMediaUrl = (url: string): string => {
-    if (!url) return '';
-    
-    // If already a full URL, fix localhost to use correct IP
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      // Replace localhost with the correct IP address
-      if (url.includes('localhost:9000')) {
-        const fixedUrl = url.replace('localhost:9000', '192.168.1.33:9000');
-        console.log('🔧 Fixed localhost URL:', url, '→', fixedUrl);
-        return fixedUrl;
-      }
-      return url;
-    }
-    
-    // For relative URLs, construct full URL with MinIO endpoint
-    const MINIO_BASE = 'http://192.168.1.33:9000';
-    const fullUrl = url.startsWith('/') ? `${MINIO_BASE}${url}` : `${MINIO_BASE}/${url}`;
-    console.log('🖼️ Constructed Media URL:', fullUrl);
-    return fullUrl;
-  };
 
   const renderReportCard = ({ item }: { item: any; index: number }) => {
     const reportId = item.id;

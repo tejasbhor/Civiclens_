@@ -129,7 +129,7 @@ async def seed_officers(db: AsyncSession):
 
 
 async def seed_super_admin(db: AsyncSession):
-    """Seed super admin user"""
+    """Seed super admin user (IDEMPOTENT - can run multiple times)"""
     print("\n👑 Creating Super Admin...")
     print("=" * 60)
     
@@ -141,13 +141,11 @@ async def seed_super_admin(db: AsyncSession):
     
     if existing_admin:
         print(f"⏭️  Super Admin already exists: {existing_admin.email}")
-        return
+        return existing_admin.id
     
     # Create super admin
-    from app.core.security import get_password_hash
-    
     super_admin = User(
-        phone="+919876543210",
+        phone="+919999999999",
         email="admin@civiclens.gov.in",
         full_name="System Administrator",
         employee_id="ADMIN-001",
@@ -168,6 +166,78 @@ async def seed_super_admin(db: AsyncSession):
     print(f"   🔑 Password: Admin123!")
     print(f"   👤 Name: {super_admin.full_name}")
     print("=" * 60)
+    return super_admin.id
+
+
+async def seed_ai_system_user(db: AsyncSession):
+    """Seed AI Engine system user (IDEMPOTENT - can run multiple times)"""
+    print("\n🤖 Creating AI Engine System User...")
+    print("=" * 60)
+    
+    AI_EMAIL = "ai-engine@civiclens.system"
+    AI_PHONE = "+919999999998"
+    AI_EMPLOYEE_ID = "AI-SYS-001"
+    
+    # Check if AI user already exists (by email, phone, or employee_id)
+    result = await db.execute(
+        select(User).where(
+            (User.email == AI_EMAIL) |
+            (User.phone == AI_PHONE) |
+            (User.employee_id == AI_EMPLOYEE_ID)
+        )
+    )
+    existing_users = result.scalars().all()
+    
+    # Handle existing user
+    if existing_users:
+        existing_user = existing_users[0]
+        print(f"⏭️  AI Engine user already exists (ID: {existing_user.id})")
+        
+        # Update to ensure consistency
+        existing_user.email = AI_EMAIL
+        existing_user.phone = AI_PHONE
+        existing_user.employee_id = AI_EMPLOYEE_ID
+        existing_user.full_name = "AI Engine"
+        existing_user.role = UserRole.ADMIN
+        existing_user.is_active = True
+        existing_user.phone_verified = True
+        existing_user.email_verified = True
+        existing_user.profile_completion = ProfileCompletionLevel.COMPLETE
+        
+        await db.commit()
+        print(f"   ✅ Updated AI Engine user configuration")
+        return existing_user.id
+    
+    # Create new AI Engine user
+    ai_user = User(
+        phone=AI_PHONE,
+        email=AI_EMAIL,
+        full_name="AI Engine",
+        employee_id=AI_EMPLOYEE_ID,
+        role=UserRole.ADMIN,
+        hashed_password=get_password_hash("AI_SYSTEM_USER_NO_LOGIN"),
+        department_id=None,  # System user, not tied to department
+        phone_verified=True,
+        email_verified=True,
+        is_active=True,
+        profile_completion=ProfileCompletionLevel.COMPLETE,
+        account_created_via="system_seed"
+    )
+    
+    db.add(ai_user)
+    await db.commit()
+    
+    print("✅ AI Engine user created:")
+    print(f"   📧 Email: {ai_user.email}")
+    print(f"   📱 Phone: {ai_user.phone}")
+    print(f"   🆔 Employee ID: {ai_user.employee_id}")
+    print(f"   👤 Name: {ai_user.full_name}")
+    print(f"   🔐 Role: {ai_user.role.value}")
+    print("\n   💡 This user will appear in audit trails when AI performs actions:")
+    print('      • "Classified by: AI Engine"')
+    print('      • "Assigned to department by: AI Engine"')
+    print("=" * 60)
+    return ai_user.id
 
 
 async def seed_navimumbai_data():
@@ -191,6 +261,9 @@ async def seed_navimumbai_data():
             
             # Create super admin user
             await seed_super_admin(db)
+            
+            # Create AI Engine system user
+            await seed_ai_system_user(db)
             
             # Summary
             print("\n" + "=" * 60)

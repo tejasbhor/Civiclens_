@@ -15,14 +15,24 @@ from app.core.database import AsyncSessionLocal, get_redis
 from app.services.ai_pipeline_service import AIProcessingPipeline
 
 # Professional logging configuration for government application
+# Use UTF-8 encoding for console and file handlers to support emojis on Windows
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setStream(open(sys.stdout.fileno(), mode='w', encoding='utf-8', buffering=1))
+
+file_handler = logging.FileHandler('logs/ai_worker.log', mode='a', encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter(
+    '%(asctime)s | %(levelname)-8s | AI-ENGINE | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s | %(levelname)-8s | AI-ENGINE | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('logs/ai_worker.log', mode='a')
-    ]
+    handlers=[console_handler, file_handler]
 )
 logger = logging.getLogger(__name__)
 

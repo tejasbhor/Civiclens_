@@ -52,9 +52,9 @@ async def create_ai_system_user():
                 print("\n✅ AI Engine user updated successfully")
                 return existing_user.id
             
-            # Create new AI Engine user
+            # Create new AI Engine user with unique phone number
             ai_user = User(
-                phone="+919999999999",  # System phone number
+                phone="+919999999998",  # AI System phone number (different from super admin)
                 email="ai-engine@civiclens.system",
                 full_name="AI Engine",
                 employee_id="AI-SYS-001",

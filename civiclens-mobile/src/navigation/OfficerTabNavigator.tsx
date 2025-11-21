@@ -16,7 +16,7 @@ import { OfficerNotificationsScreen } from '../features/officer/screens/OfficerN
 import { OfficerTasksScreen } from '../features/officer/screens/OfficerTasksScreen';
 import { OfficerTaskDetailScreen } from '../features/officer/screens/OfficerTaskDetailScreen';
 import SubmitVerificationScreen from '../features/officer/screens/SubmitVerificationScreen';
-// import { StatsScreen } from '@features/officer/screens/StatsScreen';
+import { OfficerAnalyticsScreen } from '../features/officer/screens';
 
 // Placeholder screens for now
 const PlaceholderScreen = () => {
@@ -80,7 +80,7 @@ const TasksStackNavigator = () => (
 
 const StatsStackNavigator = () => (
   <StatsStack.Navigator screenOptions={{ headerShown: false }}>
-    <StatsStack.Screen name="StatsMain" component={PlaceholderScreen} />
+    <StatsStack.Screen name="StatsMain" component={OfficerAnalyticsScreen} />
   </StatsStack.Navigator>
 );
 

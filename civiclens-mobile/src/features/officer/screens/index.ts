@@ -5,3 +5,4 @@
 
 export { OfficerDashboardScreen } from './OfficerDashboardScreen';
 export { OfficerProfileScreen } from './OfficerProfileScreen';
+export { default as OfficerAnalyticsScreen } from './OfficerAnalyticsScreen';

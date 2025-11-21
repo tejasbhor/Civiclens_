@@ -3,19 +3,8 @@
  * Utility functions for task detail screen
  */
 
-export const getMediaUrl = (url: string): string => {
-  if (!url) return '';
-  
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    if (url.includes('localhost:9000')) {
-      return url.replace('localhost:9000', '192.168.1.33:9000');
-    }
-    return url;
-  }
-  
-  const MINIO_BASE = 'http://192.168.1.33:9000';
-  return url.startsWith('/') ? `${MINIO_BASE}${url}` : `${MINIO_BASE}/${url}`;
-};
+// Re-export getMediaUrl from shared utils for backward compatibility
+export { getMediaUrl } from '@shared/utils/mediaUtils';
 
 export const getStatusColor = (status: string): string => {
   const statusMap: Record<string, string> = {

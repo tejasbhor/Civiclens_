@@ -6,6 +6,7 @@ export type Environment = 'development' | 'staging' | 'production';
 
 interface EnvConfig {
   API_BASE_URL: string;
+  MINIO_BASE_URL: string;
   GRAPHQL_ENDPOINT: string;
   ENABLE_LOGGING: boolean;
   ENVIRONMENT: Environment;
@@ -40,8 +41,32 @@ const getApiBaseUrl = (): string => {
   }
 };
 
+// Automatically detect MinIO URL (same host as API, port 9000)
+const getMinioBaseUrl = (): string => {
+  // In production, use the production MinIO
+  if (__DEV__ === false) {
+    return 'https://your-production-minio.com';
+  }
+
+  // For development, auto-detect based on API host
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
+  
+  if (debuggerHost) {
+    console.log('🖼️ Auto-detected MinIO host:', debuggerHost);
+    return `http://${debuggerHost}:9000`;
+  }
+
+  // Fallback for different environments
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:9000';
+  } else {
+    return 'http://localhost:9000';
+  }
+};
+
 const devConfig: EnvConfig = {
   API_BASE_URL: getApiBaseUrl(),
+  MINIO_BASE_URL: getMinioBaseUrl(),
   GRAPHQL_ENDPOINT: getApiBaseUrl().replace('/api/v1', '/graphql'),
   ENABLE_LOGGING: true,
   ENVIRONMENT: 'development',
@@ -49,6 +74,7 @@ const devConfig: EnvConfig = {
 
 const stagingConfig: EnvConfig = {
   API_BASE_URL: 'https://staging-api.civiclens.com/api',
+  MINIO_BASE_URL: 'https://staging-minio.civiclens.com',
   GRAPHQL_ENDPOINT: 'https://staging-api.civiclens.com/graphql',
   ENABLE_LOGGING: true,
   ENVIRONMENT: 'staging',
@@ -58,6 +84,7 @@ const prodConfig: EnvConfig = {
   // Use IP address for direct connection (change if your IP changes)
   // To find IP: run 'ipconfig' on Windows and look for IPv4 Address
   API_BASE_URL: 'http://192.168.1.33:8000/api/v1',
+  MINIO_BASE_URL: 'http://192.168.1.33:9000',
   GRAPHQL_ENDPOINT: 'http://192.168.1.33:8000/graphql',
   ENABLE_LOGGING: true, // Enable for testing
   ENVIRONMENT: 'production',

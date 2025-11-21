@@ -25,6 +25,7 @@ import { reportApi } from '@shared/services/api/reportApi';
 // Import types for report handling
 import { TopNavbar } from '@shared/components';
 import { getContentContainerStyle } from '@shared/utils/screenPadding';
+import { getMediaUrl } from '@shared/utils/mediaUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -81,28 +82,6 @@ export const ReportDetailScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
-
-  // Helper function to get full media URL
-  const getMediaUrl = (url: string): string => {
-    if (!url) return '';
-    
-    // If already a full URL, fix localhost to use correct IP
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      // Replace localhost with the correct IP address
-      if (url.includes('localhost:9000')) {
-        const fixedUrl = url.replace('localhost:9000', '192.168.1.33:9000');
-        console.log('🔧 Fixed localhost URL:', url, '→', fixedUrl);
-        return fixedUrl;
-      }
-      return url;
-    }
-    
-    // For relative URLs, construct full URL with MinIO endpoint
-    const MINIO_BASE = 'http://192.168.1.33:9000';
-    const fullUrl = url.startsWith('/') ? `${MINIO_BASE}${url}` : `${MINIO_BASE}/${url}`;
-    console.log('🖼️ Constructed Media URL:', fullUrl);
-    return fullUrl;
-  };
 
   useEffect(() => {
     loadReport();
